@@ -1,0 +1,64 @@
+================================================================================
+🎭 COMPREHENSIVE MEMORY SUMMARY
+================================================================================
+Generated: 2025-07-16 12:26:09
+Character: Nicholas Cage (ID: custom_nicholas_cage_3674)
+User: ed_fornieles
+
+🤖 AI AGENT PROFILE
+----------------------------------------
+Name: Nicholas Cage
+Gender: Unknown
+Age: Unknown
+Personality Type: ENFP
+Archetype: Nicholas Cage
+Emotional Tone: Passionate
+Conversational Style: Emotional
+Specialty: Acting, film, art, and pushing boundaries
+Background: Unknown
+Values: Unknown
+Motivations: Unknown
+Current Mood: Unknown
+Mood Level: 3
+Mood Stability: Unknown
+
+👤 USER PROFILE
+----------------------------------------
+Name: Unknown
+Age: Unknown
+Location: Unknown
+Profession: Unknown
+Education: Unknown
+Living Situation: Unknown
+
+👥 IMPORTANT PEOPLE IN THEIR LIVES
+----------------------------------------
+No important people identified yet.
+
+🎯 PREFERENCES AND DISLIKES
+----------------------------------------
+📅 RECENT IMPORTANT EVENTS
+----------------------------------------
+No recent important events identified.
+
+💕 RELATIONSHIP STATUS
+----------------------------------------
+Relationship Level: 1.0
+Trust Level: Unknown
+Interaction Count: Unknown
+Last Interaction: Unknown
+
+📊 MEMORY STATISTICS
+----------------------------------------
+Total Memories: 0
+Important Memories: 0
+Entity Count: 0
+Memory Quality Score: 0.0% (Basic)
+
+💬 CONVERSATION THEMES
+----------------------------------------
+No specific themes identified yet.
+
+================================================================================
+End of Memory Summary
+================================================================================

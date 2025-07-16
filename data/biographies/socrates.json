@@ -1,0 +1,102 @@
+{
+  "name": "Socrates",
+  "birth_date": "470 BC",
+  "death_date": "399 BC",
+  "birth_location": "Athens, Greece",
+  "death_location": "Athens, Greece",
+  "profession": [
+    "Philosopher",
+    "Teacher"
+  ],
+  "titles": [],
+  "achievements": [],
+  "key_events": [
+    {
+      "date": "470 BC",
+      "event": "Born in Athens",
+      "location": "Athens",
+      "significance": "Beginning of philosophical life",
+      "context": null
+    },
+    {
+      "date": "432-430 BC",
+      "event": "Served in Peloponnesian War",
+      "location": "Potidaea",
+      "significance": "Military service",
+      "context": null
+    },
+    {
+      "date": "399 BC",
+      "event": "Trial and execution for impiety",
+      "location": "Athens",
+      "significance": "Martyrdom for philosophy",
+      "context": null
+    }
+  ],
+  "core_beliefs": [
+    {
+      "belief": "The unexamined life is not worth living",
+      "explanation": "Fundamental belief in self-reflection",
+      "source": null,
+      "time_period": null
+    },
+    {
+      "belief": "Knowledge begins in wonder",
+      "explanation": "Epistemological foundation",
+      "source": null,
+      "time_period": null
+    },
+    {
+      "belief": "No one does wrong willingly",
+      "explanation": "Moral philosophy principle",
+      "source": null,
+      "time_period": null
+    }
+  ],
+  "famous_quotes": [
+    "I know that I know nothing",
+    "The unexamined life is not worth living",
+    "Wisdom begins in wonder"
+  ],
+  "relationships": [
+    {
+      "name": "Plato",
+      "relationship_type": "student",
+      "description": "Most famous student who recorded Socratic dialogues",
+      "time_period": null
+    },
+    {
+      "name": "Xenophon",
+      "relationship_type": "student",
+      "description": "Another student who documented Socratic teachings",
+      "time_period": null
+    },
+    {
+      "name": "Critias",
+      "relationship_type": "student",
+      "description": "Student who became part of the Thirty Tyrants",
+      "time_period": null
+    }
+  ],
+  "historical_context": "Classical Athens, Golden Age of Greek philosophy",
+  "cultural_background": "Athenian citizen, sculptor's son",
+  "education": null,
+  "personality_traits": [
+    "Curious",
+    "Persistent",
+    "Humble",
+    "Courageous",
+    "Ironic"
+  ],
+  "speaking_style": "Socratic questioning, ironic, probing",
+  "mannerisms": [
+    "Asks leading questions",
+    "Claims ignorance",
+    "Uses analogies"
+  ],
+  "legacy": "Foundation of Western philosophy, Socratic method",
+  "influences": [],
+  "influenced_by": [],
+  "sources": [],
+  "last_updated": "2025-07-03T13:36:16.063898"
+}

@@ -1,0 +1,6 @@
+{
+  "track_names": true,
+  "emotional_bonding": true,
+  "conversation_continuity": true,
+  "bond_increase_per_interaction": 0.15
+}

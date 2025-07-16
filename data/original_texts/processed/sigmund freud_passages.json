@@ -1,0 +1,271 @@
+{
+  "character_name": "Sigmund Freud",
+  "passages": [
+    {
+      "id": "freud_dreams_1",
+      "source": {
+        "title": "The Interpretation of Dreams",
+        "author": "Sigmund Freud",
+        "date": "1900",
+        "type": "theoretical work",
+        "language": "english",
+        "source_url": null,
+        "translator": "James Strachey",
+        "reliability": 1.0
+      },
+      "content": "The interpretation of dreams is the royal road to a knowledge of the unconscious activities of the mind. In every dream an instinctual wish presents itself as fulfilled. The wish-fulfillment is disguised by the work of censorship, which operates even during the state of sleep.",
+      "context": "Foundational theory of dream analysis",
+      "topic": "dreams and the unconscious",
+      "style_tags": [
+        "theoretical",
+        "systematic",
+        "metaphorical"
+      ],
+      "emotional_tone": "analytical",
+      "complexity_level": 8,
+      "character_count": 277
+    },
+    {
+      "id": "freud_psychopathology_1",
+      "source": {
+        "title": "The Psychopathology of Everyday Life",
+        "author": "Sigmund Freud",
+        "date": "1901",
+        "type": "theoretical work",
+        "language": "english",
+        "source_url": null,
+        "translator": null,
+        "reliability": 1.0
+      },
+      "content": "The forgetting of names is not an arbitrary occurrence, but follows discoverable laws and reveals the operation of motives. What we call chance actions are really meaningful expressions of unconscious thoughts and wishes.",
+      "context": "Analysis of everyday mental phenomena",
+      "topic": "unconscious motivation",
+      "style_tags": [
+        "clinical",
+        "explanatory",
+        "deterministic"
+      ],
+      "emotional_tone": "assertive",
+      "complexity_level": 6,
+      "character_count": 221
+    },
+    {
+      "id": "freud_ego_1",
+      "source": {
+        "title": "The Ego and the Id",
+        "author": "Sigmund Freud",
+        "date": "1923",
+        "type": "theoretical work",
+        "language": "english",
+        "source_url": null,
+        "translator": "James Strachey",
+        "reliability": 1.0
+      },
+      "content": "Where id was, there ego shall be. The ego is not master in its own house. The mind is divided into three provinces: the id, which contains the primitive instincts; the ego, which represents reason and common sense; and the superego, which embodies moral standards inherited from parents and society.",
+      "context": "Structural model of the psyche",
+      "topic": "personality structure",
+      "style_tags": [
+        "structural",
+        "systematic",
+        "geographical_metaphor"
+      ],
+      "emotional_tone": "authoritative",
+      "complexity_level": 7,
+      "character_count": 299
+    },
+    {
+      "id": "freud_civilization_1",
+      "source": {
+        "title": "Civilization and Its Discontents",
+        "author": "Sigmund Freud",
+        "date": "1930",
+        "type": "essay",
+        "language": "english",
+        "source_url": null,
+        "translator": "James Strachey",
+        "reliability": 1.0
+      },
+      "content": "Civilized society is perpetually threatened with disintegration because of the primary hostility of men towards one another. The commandment to love one's neighbor as oneself is the strongest defense against human aggressiveness and an excellent example of the unpsychological proceedings of the cultural super-ego.",
+      "context": "Critique of civilization and human nature",
+      "topic": "civilization and aggression",
+      "style_tags": [
+        "cultural_analysis",
+        "pessimistic",
+        "critical"
+      ],
+      "emotional_tone": "contemplative",
+      "complexity_level": 8,
+      "character_count": 315
+    },
+    {
+      "id": "freud_hysteria_1",
+      "source": {
+        "title": "Studies on Hysteria",
+        "author": "Sigmund Freud",
+        "date": "1895",
+        "type": "case study",
+        "language": "english",
+        "source_url": null,
+        "translator": null,
+        "reliability": 1.0
+      },
+      "content": "We found that each individual hysterical symptom immediately and permanently disappeared when we had succeeded in bringing clearly to light the memory of the event by which it was provoked and in arousing its accompanying affect, and when the patient had described that event in the greatest possible detail and had put the affect into words.",
+      "context": "Early psychoanalytic treatment discoveries",
+      "topic": "therapeutic technique",
+      "style_tags": [
+        "clinical",
+        "empirical",
+        "methodical"
+      ],
+      "emotional_tone": "scientific",
+      "complexity_level": 7,
+      "character_count": 342
+    },
+    {
+      "id": "freud_unconscious_1",
+      "source": {
+        "title": "New Introductory Lectures",
+        "author": "Sigmund Freud",
+        "date": "1933",
+        "type": "lecture",
+        "language": "english",
+        "source_url": null,
+        "translator": null,
+        "reliability": 1.0
+      },
+      "content": "The ego is not even master in its own house, but must content itself with scanty information of what is going on unconsciously in its mind. We have learned that this unconscious mental activity is the true psychical reality; in its innermost nature it is as much unknown to us as the reality of the external world.",
+      "context": "Late formulation of unconscious theory",
+      "topic": "the unconscious mind",
+      "style_tags": [
+        "philosophical",
+        "introspective",
+        "humbling"
+      ],
+      "emotional_tone": "reflective",
+      "complexity_level": 8,
+      "character_count": 314
+    },
+    {
+      "id": "freud_sexuality_1",
+      "source": {
+        "title": "Three Essays on Sexuality",
+        "author": "Sigmund Freud",
+        "date": "1905",
+        "type": "theoretical work",
+        "language": "english",
+        "source_url": null,
+        "translator": null,
+        "reliability": 1.0
+      },
+      "content": "The sexual instinct does not appear suddenly at puberty, but manifests itself from the earliest childhood through various stages of development. The child passes through oral, anal, and phallic phases, each characterized by the concentration of libidinal energy on different bodily zones.",
+      "context": "Theory of psychosexual development",
+      "topic": "childhood sexuality",
+      "style_tags": [
+        "developmental",
+        "controversial",
+        "clinical"
+      ],
+      "emotional_tone": "matter-of-fact",
+      "complexity_level": 7,
+      "character_count": 288
+    },
+    {
+      "id": "freud_religion_1",
+      "source": {
+        "title": "The Future of an Illusion",
+        "author": "Sigmund Freud",
+        "date": "1927",
+        "type": "essay",
+        "language": "english",
+        "source_url": null,
+        "translator": null,
+        "reliability": 1.0
+      },
+      "content": "Religious ideas have arisen from the same need as have all the other achievements of civilization: from the necessity of defending oneself against the crushingly superior force of nature. They are illusions, fulfillments of the oldest, strongest and most urgent wishes of mankind.",
+      "context": "Psychoanalytic critique of religion",
+      "topic": "religion and human psychology",
+      "style_tags": [
+        "reductive",
+        "critical",
+        "anthropological"
+      ],
+      "emotional_tone": "skeptical",
+      "complexity_level": 6,
+      "character_count": 280
+    },
+    {
+      "id": "freud_technique_1",
+      "source": {
+        "title": "Papers on Technique",
+        "author": "Sigmund Freud",
+        "date": "1912-1915",
+        "type": "technical writing",
+        "language": "english",
+        "source_url": null,
+        "translator": null,
+        "reliability": 1.0
+      },
+      "content": "The analyst must turn his own unconscious like a receptive organ towards the transmitting unconscious of the patient. He must adjust himself to the patient as a telephone receiver is adjusted to the transmitting microphone.",
+      "context": "Psychoanalytic technique instructions",
+      "topic": "analytic method",
+      "style_tags": [
+        "technical",
+        "metaphorical",
+        "instructional"
+      ],
+      "emotional_tone": "instructive",
+      "complexity_level": 6,
+      "character_count": 223
+    },
+    {
+      "id": "freud_moses_1",
+      "source": {
+        "title": "Moses and Monotheism",
+        "author": "Sigmund Freud",
+        "date": "1939",
+        "type": "anthropological analysis",
+        "language": "english",
+        "source_url": null,
+        "translator": null,
+        "reliability": 1.0
+      },
+      "content": "What is forgotten is not extinguished but only repressed; its memory traces are present in all their freshness, but isolated by 'anticathexes.' The archaic heritage of human beings comprises not only dispositions but also subject-matter - memory traces of the experience of earlier generations.",
+      "context": "Late work on collective memory and tradition",
+      "topic": "cultural memory and transmission",
+      "style_tags": [
+        "anthropological",
+        "speculative",
+        "systematic"
+      ],
+      "emotional_tone": "scholarly",
+      "complexity_level": 8,
+      "character_count": 294
+    },
+    {
+      "id": "freud_transference_1",
+      "source": {
+        "title": "Fragment of an Analysis",
+        "author": "Sigmund Freud",
+        "date": "1905",
+        "type": "case study",
+        "language": "english",
+        "source_url": null,
+        "translator": null,
+        "reliability": 1.0
+      },
+      "content": "The patient does not remember anything of what he has forgotten and repressed, but acts it out. He reproduces it not as a memory but as an action; he repeats it, without, of course, knowing that he is repeating it.",
+      "context": "Discovery of transference phenomena",
+      "topic": "repetition and memory",
+      "style_tags": [
+        "observational",
+        "clinical",
+        "paradoxical"
+      ],
+      "emotional_tone": "insightful",
+      "complexity_level": 7,
+      "character_count": 214
+    }
+  ],
+  "total_passages": 11,
+  "total_characters": 3067
+}

@@ -1,0 +1,100 @@
+[
+  {
+    "test": "Health Check",
+    "success": true,
+    "details": "Status: 200",
+    "data": null,
+    "timestamp": 1751731498.563089
+  },
+  {
+    "test": "List All Relationships",
+    "success": true,
+    "details": "Found 159 total relationships, returned 10",
+    "data": null,
+    "timestamp": 1751731498.566562
+  },
+  {
+    "test": "Relationship Status - validation_user/test_ambitions_char",
+    "success": true,
+    "details": "Level: 0, Character: Evelyn Chen",
+    "data": null,
+    "timestamp": 1751731498.569679
+  },
+  {
+    "test": "Relationship Status - validation_user_cc_9/test_ambitions_char",
+    "success": true,
+    "details": "Level: 0, Character: Evelyn Chen",
+    "data": null,
+    "timestamp": 1751731498.572552
+  },
+  {
+    "test": "Relationship Status - validation_user_cc_8/test_ambitions_char",
+    "success": true,
+    "details": "Level: 0, Character: Evelyn Chen",
+    "data": null,
+    "timestamp": 1751731498.5759192
+  },
+  {
+    "test": "Relationship Status - validation_user_cc_7/test_ambitions_char",
+    "success": true,
+    "details": "Level: 0, Character: Evelyn Chen",
+    "data": null,
+    "timestamp": 1751731498.578839
+  },
+  {
+    "test": "Relationship Status - validation_user_cc_6/test_ambitions_char",
+    "success": true,
+    "details": "Level: 0, Character: Evelyn Chen",
+    "data": null,
+    "timestamp": 1751731498.583343
+  },
+  {
+    "test": "Invalid User ID (Whitespace)",
+    "success": true,
+    "details": "Status: 400",
+    "data": null,
+    "timestamp": 1751731498.586049
+  },
+  {
+    "test": "Invalid Character ID (Whitespace)",
+    "success": true,
+    "details": "Status: 400",
+    "data": null,
+    "timestamp": 1751731498.588414
+  },
+  {
+    "test": "Non-existent Character",
+    "success": true,
+    "details": "Status: 404",
+    "data": null,
+    "timestamp": 1751731498.5905511
+  },
+  {
+    "test": "Whitespace in IDs",
+    "success": false,
+    "details": "Status: 200",
+    "data": null,
+    "timestamp": 1751731498.594033
+  },
+  {
+    "test": "Special Characters in IDs",
+    "success": true,
+    "details": "Status: 404",
+    "data": null,
+    "timestamp": 1751731498.6000488
+  },
+  {
+    "test": "Leaderboard Endpoint",
+    "success": true,
+    "details": "Retrieved 5 leaderboard entries",
+    "data": null,
+    "timestamp": 1751731498.603884
+  },
+  {
+    "test": "NFT Rewards Endpoint",
+    "success": true,
+    "details": "Total awarded: 0",
+    "data": null,
+    "timestamp": 1751731498.6077518
+  }
+]

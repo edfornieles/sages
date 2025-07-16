@@ -1,0 +1,109 @@
+{
+  "summary": {
+    "total_tests": 11,
+    "passed": 2,
+    "failed": 9,
+    "success_rate": 18.181818181818183
+  },
+  "results": [
+    {
+      "test": "Character Generation",
+      "success": false,
+      "details": "No character ID returned",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:32.833024"
+    },
+    {
+      "test": "Memory Persistence - Session 2",
+      "success": false,
+      "details": "Expected keywords ['Alex', 'data scientist', 'Microsoft'] not found in response",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:39.946023"
+    },
+    {
+      "test": "Character Consistency - Personality",
+      "success": false,
+      "details": "Expected keywords ['passionate', 'creative', 'art', 'film'] not found in response",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.812660"
+    },
+    {
+      "test": "Emotional Responses - Positive",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1045143a0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.872383"
+    },
+    {
+      "test": "Conversation Flow - Initial",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104514ac0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.901767"
+    },
+    {
+      "test": "Relationship Building - Positive",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104515d20>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.915136"
+    },
+    {
+      "test": "Mood System - Positive",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104515870>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.918642"
+    },
+    {
+      "test": "Memory Retrieval - Information Sharing",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104514eb0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.919835"
+    },
+    {
+      "test": "Character Learning - Preferences",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104514040>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.921046"
+    },
+    {
+      "test": "Error Handling - Invalid Character",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104516650>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.930552"
+    },
+    {
+      "test": "Error Handling - Missing Fields",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1044bf6d0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.932744"
+    },
+    {
+      "test": "Error Handling - Empty Message",
+      "success": false,
+      "details": "Error: HTTPConnectionPool(host='localhost', port=12345): Max retries exceeded with url: /chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104516500>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.935943"
+    },
+    {
+      "test": "Performance - Response Time",
+      "success": false,
+      "details": "Response took 0.04s or failed",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:48.979996"
+    },
+    {
+      "test": "Performance - Multiple Requests",
+      "success": false,
+      "details": "0/3 requests in 0.04s",
+      "data": null,
+      "timestamp": "2025-07-06T00:49:49.021608"
+    }
+  ],
+  "session_data": {}
+}

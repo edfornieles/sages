@@ -1,0 +1,5 @@
+{
+  "enabled": true,
+  "max_size": 1000,
+  "ttl_seconds": 300
+}

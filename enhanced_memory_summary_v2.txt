@@ -1,0 +1,5 @@
+Error generating summary: 'EnhancedMemorySystem' object has no attribute 'get_expanded_memory_context'
+Traceback: Traceback (most recent call last):
+  File "/Users/edfornieles/phidata-main_sages_memory/core/dynamic_character_playground_enhanced.py", line 5751, in generate_comprehensive_memory_summary
+    memory_context = memory_system.get_expanded_memory_context()
+AttributeError: 'EnhancedMemorySystem' object has no attribute 'get_expanded_memory_context'

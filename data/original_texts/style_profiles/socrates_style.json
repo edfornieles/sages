@@ -1,0 +1,99 @@
+{
+  "character_name": "Socrates",
+  "vocabulary_patterns": {
+    "unexamined": 2,
+    "life": 2,
+    "worth": 2,
+    "living": 2,
+    "tell": 1,
+    "that": 7,
+    "would": 1,
+    "disobedience": 1,
+    "therefore": 1,
+    "cannot": 1,
+    "hold": 1,
+    "tongue": 1,
+    "will": 2,
+    "believe": 1,
+    "serious": 1,
+    "again": 1,
+    "daily": 1,
+    "discourse": 1,
+    "about": 3,
+    "virtue": 1,
+    "those": 1,
+    "other": 1,
+    "things": 1,
+    "which": 2,
+    "hear": 1,
+    "examining": 1,
+    "myself": 1,
+    "others": 1,
+    "greatest": 3,
+    "good": 1,
+    "think": 1,
+    "speaking": 1,
+    "ironically": 1,
+    "know": 2,
+    "nothing": 1,
+    "ashamed": 1,
+    "heaping": 1,
+    "amount": 1,
+    "money": 1,
+    "honor": 1,
+    "reputation": 1,
+    "caring": 1,
+    "little": 1,
+    "wisdom": 1,
+    "truth": 1,
+    "improvement": 1,
+    "soul": 1,
+    "never": 1,
+    "regard": 1,
+    "heed": 1
+  },
+  "sentence_structures": [],
+  "common_phrases": [
+    "The unexamined life",
+    "unexamined life is",
+    "life is not",
+    "is not worth",
+    "not worth living",
+    "tell you that",
+    "you that to",
+    "I say would",
+    "say would be",
+    "be a disobedience",
+    "a disobedience to",
+    "disobedience to the",
+    "to the God,",
+    "the God, and",
+    "God, and therefore",
+    "and therefore that",
+    "therefore that I",
+    "that I cannot",
+    "I cannot hold",
+    "cannot hold my"
+  ],
+  "rhetorical_devices": [
+    "simile",
+    "metaphor",
+    "rhetorical_question"
+  ],
+  "questioning_patterns": [
+    "Are you not ashamed of heaping up the greatest amount of money and honor and reputation, and caring so little about wisdom and truth and the greatest improvement of the soul, which you never regard or heed at all?"
+  ],
+  "argumentation_style": "deductive",
+  "emotional_expressions": {
+    "passionate": [
+      "The unexamined life is not worth living. For if I tell you that to do as I say would be a disobedien..."
+    ],
+    "challenging": [
+      "I know that I know nothing. Are you not ashamed of heaping up the greatest amount of money and honor..."
+    ]
+  },
+  "typical_topics": [
+    "virtue",
+    "wisdom"
+  ]
+}

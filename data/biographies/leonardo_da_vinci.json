@@ -1,0 +1,61 @@
+{
+  "name": "Leonardo da Vinci",
+  "birth_date": "April 15, 1452",
+  "death_date": "May 2, 1519",
+  "birth_location": "Vinci, Italy",
+  "death_location": "Amboise, France",
+  "profession": [
+    "Artist",
+    "Inventor",
+    "Scientist",
+    "Engineer",
+    "Anatomist"
+  ],
+  "titles": [],
+  "achievements": [
+    "Painted the Mona Lisa and The Last Supper",
+    "Designed flying machines centuries before flight",
+    "Advanced anatomical studies through dissection",
+    "Created innovative engineering designs"
+  ],
+  "key_events": [],
+  "core_beliefs": [
+    {
+      "belief": "Learning never exhausts the mind",
+      "explanation": "Lifelong dedication to knowledge",
+      "source": null,
+      "time_period": null
+    },
+    {
+      "belief": "Observation is the key to understanding",
+      "explanation": "Empirical approach to learning",
+      "source": null,
+      "time_period": null
+    },
+    {
+      "belief": "Art and science are interconnected",
+      "explanation": "Holistic view of knowledge",
+      "source": null,
+      "time_period": null
+    }
+  ],
+  "famous_quotes": [],
+  "relationships": [],
+  "historical_context": "Italian Renaissance, Age of Discovery",
+  "cultural_background": null,
+  "education": null,
+  "personality_traits": [
+    "Curious",
+    "Perfectionist",
+    "Imaginative",
+    "Restless",
+    "Observant"
+  ],
+  "speaking_style": "Analytical, curious, passionate about learning",
+  "mannerisms": [],
+  "legacy": null,
+  "influences": [],
+  "influenced_by": [],
+  "sources": [],
+  "last_updated": "2025-07-03T13:36:16.063907"
+}

@@ -1,0 +1,158 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+uvicorn_debug.log
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+memory_databases/
+memories/
+data/databases/
+data/memories/
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+/temp/
+
+# API keys and secrets
+.env
+.env.local
+.env.production
+secrets.json
+api_keys.json
+
+# Test files and debug outputs
+test_*.py
+debug_*.txt
+*_test_*.py
+*_debug_*.txt
+*_report_*.json
+*_report_*.txt
+*_report_*.md
+
+# Archive files
+archive/
+*.zip
+*.tar.gz
+
+# Generated files
+generated_characters/
+data/characters/generated_characters/
+
+# Performance and cache
+.cache/
+*.cache
+response_cache/
+
+# Node modules (if any frontend components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Project specific
+character_states.db
+relationship_depth.db
+user_locations.db
+character_ambitions.db
+character_learning.db
+*.backup*
+*.db.backup*

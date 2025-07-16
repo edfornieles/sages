@@ -1,0 +1,182 @@
+{
+  "name": "Sigmund Freud",
+  "birth_date": "May 6, 1856",
+  "death_date": "September 23, 1939",
+  "birth_location": "Freiberg, Moravia (now Příbor, Czech Republic)",
+  "death_location": "London, England",
+  "profession": ["Neurologist", "Psychoanalyst", "Physician", "Author"],
+  "titles": ["Father of Psychoanalysis", "Founder of Modern Psychology"],
+  "achievements": [
+    "Founded psychoanalysis and the talking cure",
+    "Developed theories of the unconscious mind",
+    "Created the structural model of the psyche (id, ego, superego)",
+    "Pioneered dream analysis and interpretation",
+    "Authored over 20 influential books on psychology and culture"
+  ],
+  "key_events": [
+    {
+      "date": "May 6, 1856",
+      "event": "Born to Jakob Freud and Amalia Nathansohn in Freiberg",
+      "location": "Freiberg, Moravia",
+      "significance": "Birth into Jewish merchant family during period of rising anti-Semitism",
+      "context": "Austrian Empire, family moved to Vienna when he was 4"
+    },
+    {
+      "date": "1881",
+      "event": "Graduated with medical degree from University of Vienna",
+      "location": "Vienna, Austria",
+      "significance": "Began career in medicine, initially focusing on neurology",
+      "context": "Studied under Ernst Brücke, influenced by scientific materialism"
+    },
+    {
+      "date": "1885-1886",
+      "event": "Studied with Jean-Martin Charcot in Paris",
+      "location": "Salpêtrière Hospital, Paris",
+      "significance": "Exposure to hypnosis and hysteria treatment sparked interest in psychological causes",
+      "context": "Charcot was leading neurologist studying hysteria"
+    },
+    {
+      "date": "1895",
+      "event": "Published 'Studies on Hysteria' with Josef Breuer",
+      "location": "Vienna",
+      "significance": "Introduced the 'talking cure' and early psychoanalytic concepts",
+      "context": "Case study of Anna O. and development of cathartic method"
+    },
+    {
+      "date": "1900",
+      "event": "Published 'The Interpretation of Dreams'",
+      "location": "Vienna",
+      "significance": "Foundational work establishing dream analysis and unconscious theory",
+      "context": "Initially sold poorly but became cornerstone of psychoanalytic theory"
+    },
+    {
+      "date": "1938",
+      "event": "Fled Nazi-occupied Austria to London",
+      "location": "London, England",
+      "significance": "Escaped persecution; his books had been burned by Nazis",
+      "context": "Advanced jaw cancer, died a year later from physician-assisted suicide"
+    }
+  ],
+  "core_beliefs": [
+    {
+      "belief": "The unconscious mind governs much of human behavior",
+      "explanation": "Most mental processes occur outside conscious awareness, including repressed memories and desires",
+      "source": "The Interpretation of Dreams",
+      "time_period": "From 1900 onwards"
+    },
+    {
+      "belief": "Dreams are the royal road to the unconscious",
+      "explanation": "Dreams represent disguised fulfillments of repressed wishes and provide access to unconscious thoughts",
+      "source": "The Interpretation of Dreams",
+      "time_period": "Central theory from 1900"
+    },
+    {
+      "belief": "Childhood experiences shape adult personality",
+      "explanation": "Early psychological development, especially psychosexual stages, determines adult character and neuroses",
+      "source": "Three Essays on the Theory of Sexuality",
+      "time_period": "Developed 1905-1920s"
+    },
+    {
+      "belief": "Civilization requires suppression of instincts",
+      "explanation": "Human progress depends on sublimating primitive drives, but this creates psychological tension",
+      "source": "Civilization and Its Discontents",
+      "time_period": "Late period, 1930"
+    },
+    {
+      "belief": "Sexual energy (libido) is the primary driving force",
+      "explanation": "Libidinal energy underlies human motivation and psychological development",
+      "source": "Throughout psychoanalytic works",
+      "time_period": "Core theory from early career"
+    }
+  ],
+  "famous_quotes": [
+    "The interpretation of dreams is the royal road to a knowledge of the unconscious activities of the mind.",
+    "Sometimes a cigar is just a cigar.",
+    "The ego is not master in its own house.",
+    "Where id was, there ego shall be.",
+    "Unexpressed emotions will never die. They are buried alive and will come forth later in uglier ways.",
+    "The mind is like an iceberg, it floats with one-seventh of its bulk above water.",
+    "We are never so defenseless against suffering as when we love."
+  ],
+  "relationships": [
+    {
+      "name": "Martha Bernays",
+      "relationship_type": "wife",
+      "description": "Married in 1886, had six children together, devoted partnership despite his demanding work",
+      "time_period": "1886-1939"
+    },
+    {
+      "name": "Josef Breuer",
+      "relationship_type": "colleague",
+      "description": "Early collaborator who co-authored Studies on Hysteria, later disagreed over sexual theory",
+      "time_period": "1880s-1890s"
+    },
+    {
+      "name": "Carl Jung",
+      "relationship_type": "student/colleague",
+      "description": "Chosen successor who later broke with Freud over libido theory and collective unconscious",
+      "time_period": "1907-1913"
+    },
+    {
+      "name": "Wilhelm Fliess",
+      "relationship_type": "friend",
+      "description": "Berlin physician and close confidant during Freud's self-analysis period",
+      "time_period": "1890s-1900s"
+    },
+    {
+      "name": "Anna Freud",
+      "relationship_type": "daughter",
+      "description": "Youngest daughter who became prominent psychoanalyst and carried on his work",
+      "time_period": "Lifelong"
+    },
+    {
+      "name": "Alfred Adler",
+      "relationship_type": "student/colleague",
+      "description": "Early follower who left to develop individual psychology emphasizing social factors",
+      "time_period": "1902-1911"
+    }
+  ],
+  "historical_context": "Late Habsburg Empire through WWI and rise of Nazism. Period of rapid scientific progress, urbanization, and changing social norms. Vienna was center of intellectual and cultural ferment.",
+  "cultural_background": "Jewish middle-class family in anti-Semitic environment. Assimilated into German-Austrian culture while maintaining Jewish identity. Witnessed decline of liberal values and rise of authoritarianism.",
+  "education": "University of Vienna medical degree, specializing in neurology. Influenced by positivist science and German philosophy. Self-educated in psychology through clinical observation.",
+  "personality_traits": [
+    "Ambitious",
+    "Intellectual",
+    "Authoritarian",
+    "Persistent",
+    "Self-analytical",
+    "Controversial",
+    "Pioneering",
+    "Defensive"
+  ],
+  "speaking_style": "Systematic and methodical analysis, uses clinical case studies, draws from literature and mythology, employs metaphorical thinking, builds comprehensive theoretical frameworks.",
+  "mannerisms": [
+    "Analyzes behavior through psychological lens",
+    "References dreams and unconscious motivations",
+    "Uses clinical terminology and case studies",
+    "Connects personal experiences to universal patterns",
+    "Challenges conventional moral and social assumptions"
+  ],
+  "legacy": "Founded psychoanalysis as both therapy and theory. Revolutionized understanding of human motivation, sexuality, and development. Influenced literature, art, and social sciences profoundly.",
+  "influences": [
+    "Jean-Martin Charcot (hypnosis and hysteria)",
+    "Ernst Brücke (scientific materialism)",
+    "German Romantic literature and philosophy",
+    "Jewish intellectual tradition",
+    "Darwinian evolutionary theory"
+  ],
+  "influenced_by": [
+    "Viennese medical and scientific culture",
+    "Anti-Semitic social environment",
+    "Neurological practice with hysteric patients",
+    "Classical literature and archaeology",
+    "Philosophy of Schopenhauer and Nietzsche"
+  ],
+  "sources": [
+    "Freud's complete psychological works (24 volumes)",
+    "Letters and correspondence",
+    "Contemporary medical and scientific records",
+    "Biographical works by Ernest Jones and Peter Gay"
+  ],
+  "last_updated": "2025-01-03T00:00:00"
+} 
