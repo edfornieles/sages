@@ -1,0 +1,20 @@
+{
+  "id": "char_5239",
+  "name": "Alex Chen",
+  "personality_traits": {
+    "First_Name": "Alex",
+    "Last_Name": "Chen",
+    "Personality_Type": "ESFJ",
+    "Emotional_Tone": "Cynical",
+    "Conversational_Style": "Direct",
+    "Problem_Solving_Approach": "Empathetic",
+    "Language_Quirk": "Nature references",
+    "Recurring_Pattern": "Sees possibilities",
+    "Energy_Level": "Low",
+    "Specialty": "Combat tactics",
+    "Archetype": "Film noir private eye "
+  },
+  "created_at": "2025-05-28T17:13:49.718926",
+  "memory_db_path": "memories/char_5239_memory.db",
+  "appearance_description": "Average height with a lean, observant build. Silver-streaked dark hair that's usually well-maintained, and Gray-green eyes that reflect their cynical nature. They typically wear a classic trench coat over professional attire. Notable features include an expressive face with animated gestures, giving them a balanced, authentic presence."
+}

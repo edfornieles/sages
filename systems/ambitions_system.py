@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 import uuid
 
 class AmbitionsSystem:
-    def __init__(self, character_id: str, db_path: str = "character_ambitions.db"):
+    def __init__(self, character_id: str, db_path: str = "memory_new/db/character_ambitions.db"):
         self.character_id = character_id
         self.db_path = Path(db_path)
         self.init_database()

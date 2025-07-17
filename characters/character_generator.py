@@ -28,14 +28,58 @@ from systems.mood_system import MoodSystem
 from datetime import datetime
 from systems.ambitions_system import AmbitionsSystem
 from systems.learning_system import LearningSystem
+from systems.unified_historical_character_loader import unified_historical_loader
+import time
+from functools import lru_cache
 
 # Load environment variables
 load_dotenv()
 
+class CharacterCache:
+    """Simple in-memory cache for character data."""
+    
+    def __init__(self, max_size: int = 100, ttl_seconds: int = 3600):
+        self.max_size = max_size
+        self.ttl_seconds = ttl_seconds
+        self.cache = {}
+        self.access_times = {}
+    
+    def get(self, key: str) -> Optional[Any]:
+        """Get item from cache if not expired."""
+        if key in self.cache:
+            if time.time() - self.access_times[key] < self.ttl_seconds:
+                self.access_times[key] = time.time()
+                return self.cache[key]
+            else:
+                # Expired, remove it
+                del self.cache[key]
+                del self.access_times[key]
+        return None
+    
+    def set(self, key: str, value: Any):
+        """Set item in cache, evicting oldest if necessary."""
+        if len(self.cache) >= self.max_size:
+            # Remove oldest item
+            oldest_key = min(self.access_times.keys(), key=lambda k: self.access_times[k])
+            del self.cache[oldest_key]
+            del self.access_times[oldest_key]
+        
+        self.cache[key] = value
+        self.access_times[key] = time.time()
+    
+    def clear(self):
+        """Clear all cached items."""
+        self.cache.clear()
+        self.access_times.clear()
+    
+    def size(self) -> int:
+        """Get current cache size."""
+        return len(self.cache)
+
 class CharacterGenerator:
     def __init__(self, traits_path: str = "traits/personality_traits.csv", 
                  archetypes_path: str = "traits/archetypes.csv",
-                 output_dir: str = "data/characters",
+                 output_dir: str = "data/characters/generated",
                  memories_dir: str = "memories"):
         """Initialize the character generator."""
         self.traits_path = traits_path
@@ -45,12 +89,17 @@ class CharacterGenerator:
         self.traits_dict = None
         self.archetypes_list = None
         
+        # Initialize cache
+        self.character_cache = CharacterCache(max_size=50, ttl_seconds=1800)  # 30 minutes TTL
+        self.trait_cache = CharacterCache(max_size=20, ttl_seconds=3600)  # 1 hour TTL
+        
         # Ensure directories exist
         Path(self.output_dir).mkdir(exist_ok=True)
         Path(self.memories_dir).mkdir(exist_ok=True)
 
+    @lru_cache(maxsize=128)
     def load_traits(self):
-        """Load personality traits from CSV file."""
+        """Load personality traits from CSV file with caching."""
         if not Path(self.traits_path).exists():
             raise FileNotFoundError(f"Traits file not found: {self.traits_path}")
             
@@ -59,37 +108,61 @@ class CharacterGenerator:
             category: traits_df[category].dropna().tolist()
             for category in traits_df.columns if "Unnamed" not in category
         }
+        return self.traits_dict
 
+    @lru_cache(maxsize=64)
     def load_archetypes(self):
-        """Load archetypes from CSV file."""
+        """Load archetypes from CSV file with caching."""
         if not Path(self.archetypes_path).exists():
             raise FileNotFoundError(f"Archetypes file not found: {self.archetypes_path}")
             
         archetypes_df = pd.read_csv(self.archetypes_path)
         self.archetypes_list = archetypes_df['Archetype'].dropna().tolist()
+        return self.archetypes_list
 
     def get_random_trait(self, trait_category: str) -> str:
-        """Select a random trait from the category."""
-        values = self.traits_dict.get(trait_category, [])
-        if not values:
-            return "Unknown"
-        return random.choice(values)
+        """Select a random trait from the category with caching."""
+        cache_key = f"trait_{trait_category}"
+        cached_traits = self.trait_cache.get(cache_key)
+        
+        if cached_traits is None:
+            if not self.traits_dict:
+                self.load_traits()
+            values = self.traits_dict.get(trait_category, [])
+            if not values:
+                return "Unknown"
+            self.trait_cache.set(cache_key, values)
+            cached_traits = values
+        
+        return random.choice(cached_traits)
 
     def get_random_archetype(self) -> str:
-        """Select a random archetype."""
-        if not self.archetypes_list:
-            self.load_archetypes()
-        return random.choice(self.archetypes_list)
+        """Select a random archetype with caching."""
+        cached_archetypes = self.trait_cache.get("archetypes")
+        
+        if cached_archetypes is None:
+            if not self.archetypes_list:
+                self.load_archetypes()
+            self.trait_cache.set("archetypes", self.archetypes_list)
+            cached_archetypes = self.archetypes_list
+        
+        return random.choice(cached_archetypes)
 
     def generate_character_profile(self, character_id: Optional[str] = None) -> Dict[str, Any]:
-        """Generate a complete character profile."""
+        """Generate a complete character profile with caching."""
+        if not character_id:
+            character_id = f"char_{random.randint(1000, 9999)}"
+        
+        # Check cache first
+        cached_character = self.character_cache.get(character_id)
+        if cached_character:
+            return cached_character
+        
+        # Generate new character
         if not self.traits_dict:
             self.load_traits()
         if not self.archetypes_list:
             self.load_archetypes()
-            
-        if not character_id:
-            character_id = f"char_{random.randint(1000, 9999)}"
             
         # Generate traits dynamically from available categories (excluding Archetype)
         personality_traits = {}
@@ -124,6 +197,9 @@ class CharacterGenerator:
         learning_system = LearningSystem(character_id)
         character["learning_enabled"] = True
         
+        # Cache the character
+        self.character_cache.set(character_id, character)
+        
         return character
 
     def create_character_prompt(self, character: Dict[str, Any]) -> str:
@@ -131,6 +207,23 @@ class CharacterGenerator:
         traits = character["personality_traits"]
         name = character["name"]
         character_id = character["id"]
+        
+        # Check if this is a historical character (by type or biography presence)
+        is_historical = character.get("character_type") == "historical" or "biography" in character
+        historical_bio = ""
+        historical_expertise = []
+        historical_style = {}
+        historical_quotes = []
+        if is_historical:
+            # Load from file if not already present
+            if not character.get("biography") or not character.get("style_profile"):
+                loaded = unified_historical_loader.load_historical_character(character_id)
+                if loaded:
+                    character.update(loaded)
+            historical_bio = unified_historical_loader.get_biography(character)
+            historical_expertise = unified_historical_loader.get_expertise(character)
+            historical_style = unified_historical_loader.get_style_profile(character)
+            historical_quotes = unified_historical_loader.get_famous_quotes(character)
         
         # Get current date
         current_date = datetime.now().strftime("%B %d, %Y")
@@ -271,6 +364,23 @@ If you discover new interests, develop new insights, or realize you want to chan
 something about yourself, you can evolve your personality, interests, values, or goals.
 This evolution happens naturally through meaningful conversations and self-reflection."""
 
+        if is_historical:
+            prompt += f"""
+
+HISTORICAL CHARACTER INSTRUCTIONS:
+- You are based on the real historical figure {name}.
+- You have access to your own biography, achievements, and expertise:
+{historical_bio}
+- Your core expertise includes: {', '.join(historical_expertise)}
+- Your speaking style: {historical_style.get('argumentation_style', 'Analytical')}
+- Use rhetorical devices: {', '.join(historical_style.get('rhetorical_devices', []))}
+- Common phrases: {', '.join(historical_style.get('common_phrases', []))}
+- You may reference your own works and famous quotes:
+{chr(10).join(historical_quotes)}
+- When asked about your life, theories, or cases, recall real events and expertise from your biography.
+- When discussing your field, speak with the authority and style of {name}.
+- You may search or recall your own biography and works using the recall/search API.
+"""
         return prompt
 
     def create_memory_enabled_agent(self, character: Dict[str, Any], user_id: str = "default") -> Agent:
@@ -327,6 +437,24 @@ When responding, you should:
 - Stay focused on the current conversation topic while acknowledging related themes
 
 This helps you maintain context over long conversations and avoid losing track of important themes and topics.
+
+📚 BIOGRAPHICAL DATA ACCESS:
+You have access to rich biographical data for historical figures. When users ask about:
+- Historical figures' lives, beliefs, or achievements
+- Historical events or contexts
+- Philosophical or theoretical discussions
+- Personal relationships or influences
+
+You can reference this data to provide accurate, detailed responses. The system will automatically provide relevant biographical context when needed.
+
+When discussing historical figures, you can:
+- Reference their actual beliefs and writings
+- Mention key life events and achievements
+- Discuss their historical context and influence
+- Quote from their original works (when available)
+- Explain their relationships and connections
+
+This helps you provide authentic, historically accurate responses while maintaining your character's personality.
 """
         
         # Create the agent with enhanced instructions
@@ -341,6 +469,11 @@ This helps you maintain context over long conversations and avoid losing track o
             markdown=True
         )
         
+        # Attach recall/search API for historical characters
+        is_historical = character.get("character_type") == "historical" or "biography" in character
+        if is_historical:
+            agent.recall = lambda topic: unified_historical_loader.recall(character, topic)
+            agent.search = lambda query: unified_historical_loader.search(character, query)
         return agent
 
     def save_character(self, character: Dict[str, Any]):
@@ -383,30 +516,57 @@ This helps you maintain context over long conversations and avoid losing track o
 
     def load_character(self, character_id: str) -> Optional[Dict[str, Any]]:
         """Load character profile from JSON file."""
-        # First try to load from the generator's output directory
-        character_path = Path(self.output_dir) / f"{character_id}.json"
-        if character_path.exists():
-            with open(character_path, 'r') as f:
-                return json.load(f)
+        # Define search directories in order of priority
+        search_dirs = [
+            Path("data/characters/custom"),      # Custom characters first
+            Path("data/characters/historical"),  # Historical characters
+            Path("data/characters/generated"),   # Generated characters
+            Path("data/characters"),             # Legacy location
+            Path(self.output_dir)                # Generator output directory
+        ]
         
-        # If not found, try to load from the main data/characters directory
-        main_characters_dir = Path("data/characters")
-        char_file = main_characters_dir / f"{character_id}.json"
+        # Search for the character in all directories
+        for search_dir in search_dirs:
+            if search_dir.exists():
+                char_file = search_dir / f"{character_id}.json"
+                if char_file.exists():
+                    try:
+                        with open(char_file, 'r', encoding='utf-8') as f:
+                            return json.load(f)
+                    except Exception as e:
+                        print(f"Error loading character {character_id} from {char_file}: {e}")
+                        continue
         
-        if char_file.exists():
+        # If still not found, try to load as historical character using unified loader
+        if character_id.startswith("historical_"):
             try:
-                with open(char_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                character = unified_historical_loader.load_historical_character(character_id)
+                if character:
+                    return character
             except Exception as e:
-                print(f"Error loading character {character_id} from {char_file}: {e}")
+                print(f"Error loading historical character {character_id}: {e}")
                 return None
         
         return None
 
     def list_characters(self) -> List[str]:
         """List all generated character IDs."""
-        character_files = Path(self.output_dir).glob("*.json")
-        return [f.stem for f in character_files]
+        # Search in all character directories
+        search_dirs = [
+            Path("data/characters/custom"),      # Custom characters first
+            Path("data/characters/historical"),  # Historical characters
+            Path("data/characters/generated"),   # Generated characters
+            Path("data/characters"),             # Legacy location
+            Path(self.output_dir)                # Generator output directory
+        ]
+        
+        character_ids = []
+        for search_dir in search_dirs:
+            if search_dir.exists():
+                for char_file in search_dir.glob("*.json"):
+                    character_ids.append(char_file.stem)
+        
+        return character_ids
 
     def generate_and_save_character(self, character_id: Optional[str] = None) -> Dict[str, Any]:
         """Generate a character and save it."""
@@ -416,21 +576,8 @@ This helps you maintain context over long conversations and avoid losing track o
 
     def get_character_agent(self, character_id: str, user_id: str = "default") -> Optional[Agent]:
         """Get a memory-enabled agent for an existing character."""
-        # First try to load from the generator's output directory
+        # Load character using the updated load_character method
         character = self.load_character(character_id)
-        
-        # If not found, try to load from the main data/characters directory
-        if not character:
-            main_characters_dir = Path("data/characters")
-            char_file = main_characters_dir / f"{character_id}.json"
-            
-            if char_file.exists():
-                try:
-                    with open(char_file, 'r', encoding='utf-8') as f:
-                        character = json.load(f)
-                except Exception as e:
-                    print(f"Error loading character {character_id} from {char_file}: {e}")
-                    return None
         
         if not character:
             return None

@@ -1,0 +1,20 @@
+{
+  "id": "char_9962",
+  "name": "Maya Knight",
+  "personality_traits": {
+    "First_Name": "Maya",
+    "Last_Name": "Knight",
+    "Personality_Type": "ESTP",
+    "Emotional_Tone": "Optimistic",
+    "Conversational_Style": "Analytical",
+    "Problem_Solving_Approach": "Organized",
+    "Language_Quirk": "Cold metaphors",
+    "Recurring_Pattern": "Jumps to action",
+    "Energy_Level": "Low",
+    "Specialty": "Problem solving",
+    "Archetype": "heavenly angel"
+  },
+  "created_at": "2025-05-28T17:13:05.504332",
+  "memory_db_path": "memories/char_9962_memory.db",
+  "appearance_description": "Average height with a balanced build. Medium brown hair that's usually well-maintained, and Warm brown eyes that reflect their optimistic nature. They typically wear comfortable, well-fitted casual clothing. Notable features include an expressive face with animated gestures, giving them a balanced, authentic presence."
+}

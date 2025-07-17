@@ -231,7 +231,13 @@ class FastResponseManager:
     def __init__(self):
         self.optimizers = {}  # character_id -> PerformanceOptimizer
         self.global_cache = {}
-        
+    
+    def add_optimizer(self, character_id: str, user_id: str, optimizer: PerformanceOptimizer):
+        """Register a PerformanceOptimizer for a character-user pair."""
+        key = f"{character_id}_{user_id}"
+        self.optimizers[key] = optimizer
+        return optimizer
+    
     def get_optimizer(self, character_id: str, user_id: str) -> PerformanceOptimizer:
         """Get or create a performance optimizer for a character-user pair."""
         key = f"{character_id}_{user_id}"
@@ -297,3 +303,8 @@ class FastResponseManager:
 
 # Global instance
 fast_response_manager = FastResponseManager() 
+
+__all__ = [
+    'PerformanceOptimizer',
+    'FastResponseManager',
+] 

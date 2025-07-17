@@ -30,7 +30,7 @@ class CharacterState:
 class CharacterStatePersistence:
     """Manages character state persistence across sessions"""
     
-    def __init__(self, db_path: str = "character_states.db"):
+    def __init__(self, db_path: str = "memory_new/db/character_states.db"):
         self.db_path = db_path
         self.init_database()
     

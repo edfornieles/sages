@@ -131,17 +131,17 @@ class UltraFastResponseCache:
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache performance statistics."""
         total = self.cache_stats["total_requests"]
-        if total == 0:
-            return {"hit_rate": 0, "cache_size": len(self.cache)}
-        
-        hit_rate = self.cache_stats["hits"] / total * 100
-        return {
-            "hit_rate": hit_rate,
-            "total_requests": total,
-            "cache_hits": self.cache_stats["hits"],
-            "cache_misses": self.cache_stats["misses"],
+        stats = {
+            "total_requests": self.cache_stats["total_requests"],
+            "hits": self.cache_stats["hits"],
+            "misses": self.cache_stats["misses"],
             "cache_size": len(self.cache)
         }
+        if total == 0:
+            stats["hit_rate"] = 0
+        else:
+            stats["hit_rate"] = self.cache_stats["hits"] / total * 100
+        return stats
 
 class DetectiveConsistencyEnforcer:
     """Enforces detective character consistency in responses."""

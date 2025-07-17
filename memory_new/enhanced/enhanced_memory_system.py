@@ -875,9 +875,32 @@ class EnhancedMemorySystem:
                     WHERE id = ? AND character_id = ? AND user_id = ?
                 """, (memory_id, self.character_id, self.user_id))
                 conn.commit()
+                return cursor.rowcount > 0
                 
         except Exception as e:
             logger.error(f"❌ Failed to delete enhanced memory: {e}")
+            return False
+
+    def update_memory(self, memory_id: str, content: str, memory_type: str = "conversation", 
+                     importance: float = 0.5, confidence: float = 0.8):
+        """Update an existing memory"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE enhanced_memory 
+                    SET content = ?, memory_type = ?, importance = ?
+                    WHERE id = ? AND character_id = ? AND user_id = ?
+                """, (content, memory_type, importance, memory_id, self.character_id, self.user_id))
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"❌ Failed to update memory {memory_id}: {e}")
+            return False
+
+    def get_all_memories(self):
+        """Get all memories for memory management interface"""
+        return self.get_all_memories_for_summary()
     
     def get_memory_stats(self) -> Dict[str, Any]:
         """Get memory statistics"""

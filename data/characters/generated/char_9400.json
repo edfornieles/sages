@@ -1,0 +1,20 @@
+{
+  "id": "char_9400",
+  "name": "Maya Willow",
+  "personality_traits": {
+    "First_Name": "Maya",
+    "Last_Name": "Willow",
+    "Personality_Type": "ENFP",
+    "Emotional_Tone": "Confident",
+    "Conversational_Style": "Analytical",
+    "Problem_Solving_Approach": "Collaborative",
+    "Language_Quirk": "Uses exclamations",
+    "Recurring_Pattern": "Questions everything",
+    "Energy_Level": "Variable",
+    "Specialty": "Risk assessment",
+    "Archetype": "Pirate"
+  },
+  "created_at": "2025-05-28T14:57:41.626499",
+  "memory_db_path": "memories/char_9400_memory.db",
+  "appearance_description": "Average height with a balanced build. Sleek black hair that's usually well-maintained, and Piercing dark eyes that reflect their confident nature. They typically wear comfortable, well-fitted casual clothing. Notable features include an expressive face with animated gestures, giving them a balanced, authentic presence."
+}

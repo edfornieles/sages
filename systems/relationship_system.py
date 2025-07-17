@@ -50,7 +50,7 @@ class RelationshipMetrics:
 class RelationshipSystem:
     """Advanced relationship tracking system with anti-gaming measures and NFT rewards."""
     
-    def __init__(self, db_path: str = "relationship_depth.db"):
+    def __init__(self, db_path: str = "memory_new/db/relationship_depth.db"):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         
@@ -596,8 +596,8 @@ class RelationshipSystem:
         result = cursor.fetchone()
         if not result:
             return 0.0, False
-        current_level, conversations, time_spent, emotional, memories, conflicts, growth, consistency, authenticity, created_at = result
-        # Calculate progress for next level
+        db_current_level, conversations, time_spent, emotional, memories, conflicts, growth, consistency, authenticity, created_at = result
+        current_level = db_current_level
         level_up = False
         for level in range(1, 11):
             reqs = self.level_requirements.get(level, {})
@@ -612,6 +612,12 @@ class RelationshipSystem:
                     level_up = True
             else:
                 break
+        # If level increased, update in DB
+        if current_level > db_current_level:
+            cursor.execute("""
+                UPDATE relationships SET current_level = ? WHERE user_id = ? AND character_id = ?
+            """, (current_level, user_id, character_id))
+            conn.commit()
         # Weight positive/emotional interactions and memories_shared more
         weighted_level = current_level + 0.2 * emotional + 0.2 * memories
         return min(10.0, weighted_level), level_up
@@ -786,7 +792,17 @@ class RelationshipSystem:
                 progress = {}
                 if next_requirements:
                     for req, target in next_requirements.items():
-                        current_value = relationship_data.get(req.replace("consistency", "consistency_score").replace("authenticity", "authenticity_score"), 0)
+                        # Map requirement names to database field names
+                        field_mapping = {
+                            "conversations": "total_conversations",
+                            "time": "total_time_spent", 
+                            "emotional": "emotional_moments",
+                            "memories": "memories_shared",
+                            "consistency": "consistency_score",
+                            "authenticity": "authenticity_score"
+                        }
+                        db_field = field_mapping.get(req, req)
+                        current_value = relationship_data.get(db_field, 0)
                         progress[req] = {
                             "current": current_value,
                             "required": target,

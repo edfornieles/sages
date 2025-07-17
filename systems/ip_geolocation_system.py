@@ -51,7 +51,7 @@ class TimezoneAwareEvent:
 class IPGeolocationSystem:
     """Advanced IP-based geolocation and timezone detection."""
     
-    def __init__(self, db_path: str = "user_locations.db"):
+    def __init__(self, db_path: str = "memory_new/db/user_locations.db"):
         self.db_path = Path(db_path)
         self._init_database()
         

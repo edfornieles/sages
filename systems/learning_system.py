@@ -18,7 +18,7 @@ from collections import defaultdict, Counter
 import re
 
 class LearningSystem:
-    def __init__(self, character_id: str, db_path: str = "character_learning.db"):
+    def __init__(self, character_id: str, db_path: str = "memory_new/db/character_learning.db"):
         self.character_id = character_id
         self.db_path = Path(db_path)
         self.init_database()

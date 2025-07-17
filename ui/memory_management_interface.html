@@ -577,7 +577,7 @@
         // Configuration
         let CHARACTER_ID = '';
         let USER_ID = '';
-        const API_BASE = 'http://localhost:8001';
+        const API_BASE = 'http://localhost:8004';
         
         // State
         let memories = [];
@@ -643,11 +643,13 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                return data.users || [];
+                // Filter to only show the three specified users
+                const allowedUsers = ["fornieles", "alex chen", "test"];
+                return (data.users || []).filter(user => allowedUsers.includes(user));
             } catch (error) {
                 console.error('Error fetching users:', error);
-                // Fallback to mock data if API fails
-                return ["ed_fornieles", "test_user", "user", "test_user_john"];
+                // Fallback to only the three specified users
+                return ["fornieles", "alex chen", "test"];
             }
         }
         async function loadMemories() {
@@ -656,9 +658,22 @@
                 const res = await fetch(`${API_BASE}/characters/${CHARACTER_ID}/memory-summary/${USER_ID}`);
                 if (!res.ok) throw new Error('Failed to load memories');
                 const data = await res.json();
-                // Assume data.summary is a string or array of memories
-                // You may need to adjust this based on actual API response
-                memories = Array.isArray(data.summary) ? data.summary : parseMemoriesFromSummary(data.summary);
+                
+                // Convert the memory summary format to the format expected by the UI
+                const summary = data.summary;
+                if (summary && summary.memories) {
+                    memories = summary.memories.map((memory, index) => ({
+                        id: memory.id || `memory_${index}`,
+                        content: memory.content || memory.memory || '',
+                        type: memory.memory_type || 'conversation',
+                        importance: memory.importance || 0.5,
+                        confidence: 0.8, // Default confidence
+                        created_at: memory.timestamp || memory.created_at || new Date().toISOString()
+                    }));
+                } else {
+                    memories = [];
+                }
+                
                 filteredMemories = [...memories];
                 renderMemories();
                 renderPagination();
@@ -951,20 +966,33 @@
         }
 
         async function addMemory(memoryData) {
-            // Mock API call - replace with actual implementation
-            const newMemory = {
-                id: Date.now().toString(),
-                ...memoryData,
-                created_at: new Date().toISOString()
-            };
-            memories.unshift(newMemory);
+            // For now, we'll show a message that manual memory creation is not supported
+            // The enhanced memory system automatically creates memories during conversations
+            showError('Memory creation is automatic during conversations. Memories are created as you chat with characters.');
         }
 
         async function updateMemory(memoryId, memoryData) {
-            // Mock API call - replace with actual implementation
-            const memoryIndex = memories.findIndex(m => m.id === memoryId);
-            if (memoryIndex !== -1) {
-                memories[memoryIndex] = { ...memories[memoryIndex], ...memoryData };
+            try {
+                const response = await fetch(`${API_BASE}/characters/${CHARACTER_ID}/memory-edit/${USER_ID}?memory_id=${memoryId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ new_content: memoryData.content })
+                });
+                
+                if (!response.ok) throw new Error('Failed to update memory');
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Reload memories to get the updated list
+                    await loadMemories();
+                } else {
+                    throw new Error(result.message || 'Failed to update memory');
+                }
+            } catch (error) {
+                console.error('Error updating memory:', error);
+                throw error;
             }
         }
 
@@ -972,13 +1000,21 @@
             if (!confirm('Are you sure you want to delete this memory?')) return;
             
             try {
-                // Mock API call - replace with actual implementation
-                memories = memories.filter(m => m.id !== memoryId);
-                selectedMemories.delete(memoryId);
-                renderMemories();
-                renderPagination();
-                updateSelectedCount();
-                showSuccess('Memory deleted successfully');
+                const response = await fetch(`${API_BASE}/characters/${CHARACTER_ID}/memory-delete/${USER_ID}?memory_id=${memoryId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Failed to delete memory');
+                const result = await response.json();
+                
+                if (result.success) {
+                    selectedMemories.delete(memoryId);
+                    await loadMemories();
+                    updateSelectedCount();
+                    showSuccess('Memory deleted successfully');
+                } else {
+                    throw new Error(result.message || 'Failed to delete memory');
+                }
             } catch (error) {
                 console.error('Error deleting memory:', error);
                 showError('Failed to delete memory');
@@ -991,13 +1027,22 @@
             if (!confirm(`Are you sure you want to delete ${selectedMemories.size} memories?`)) return;
             
             try {
-                // Mock bulk delete - replace with actual implementation
-                memories = memories.filter(m => !selectedMemories.has(m.id));
+                // Delete memories one by one using the existing endpoint
+                const deletePromises = Array.from(selectedMemories).map(memoryId =>
+                    fetch(`${API_BASE}/characters/${CHARACTER_ID}/memory-delete/${USER_ID}?memory_id=${memoryId}`, {
+                        method: 'DELETE'
+                    })
+                );
+                
+                const results = await Promise.allSettled(deletePromises);
+                const successfulDeletes = results.filter(result => 
+                    result.status === 'fulfilled' && result.value.ok
+                ).length;
+                
                 selectedMemories.clear();
                 toggleBulkMode();
-                renderMemories();
-                renderPagination();
-                showSuccess(`${selectedMemories.size} memories deleted successfully`);
+                await loadMemories();
+                showSuccess(`${successfulDeletes} memories deleted successfully`);
             } catch (error) {
                 console.error('Error bulk deleting memories:', error);
                 showError('Failed to delete memories');

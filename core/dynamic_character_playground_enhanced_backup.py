@@ -2660,7 +2660,7 @@ IMPORTANT: As {character_name}, respond naturally and in character. Use any info
 IMPORTANT: As {character_name}, respond naturally and in character.
 """
                                     agent.instructions = f"{agent.instructions}\n\n{fallback_context}"
-                    else:
+                    except Exception as e:
                         print(f"⚠️ Memory fix failed: {memory_fix_result.get('error', 'Unknown error')}")
                         
                 except ImportError:
@@ -4495,7 +4495,7 @@ async def set_wallet_address(request: WalletRequest):
         logger.info(f"Setting wallet address for user_id={request.user_id}, character_id={request.character_id}")
         
         # Update wallet address in NFT rewards table
-        with sqlite3.connect("data/databases/relationship_depth.db") as conn:
+        with sqlite3.connect("memory_new/db/relationship_depth.db") as conn:
             cursor = conn.cursor()
             
             cursor.execute("""

@@ -10,6 +10,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 from literary_text_processor import LiteraryTextProcessor
+from systems.historical_character_loader import historical_loader
+import re
 
 class CustomCharacterCreator:
     """Creates custom characters with detailed personality and biography."""
@@ -93,8 +95,95 @@ class CustomCharacterCreator:
             ]
         }
     
+    def validate_character_data(self, form_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate character creation form data."""
+        errors = []
+        warnings = []
+        
+        # Required field validation
+        required_fields = ["first_name", "last_name"]
+        for field in required_fields:
+            if not form_data.get(field) or not form_data[field].strip():
+                errors.append(f"{field.replace('_', ' ').title()} is required")
+        
+        # Name validation
+        if form_data.get("first_name"):
+            if len(form_data["first_name"]) < 2:
+                errors.append("First name must be at least 2 characters long")
+            if len(form_data["first_name"]) > 50:
+                errors.append("First name must be less than 50 characters")
+            if not re.match(r'^[a-zA-Z\s\-\.]+$', form_data["first_name"]):
+                warnings.append("First name contains unusual characters")
+        
+        if form_data.get("last_name"):
+            if len(form_data["last_name"]) < 2:
+                errors.append("Last name must be at least 2 characters long")
+            if len(form_data["last_name"]) > 50:
+                errors.append("Last name must be less than 50 characters")
+            if not re.match(r'^[a-zA-Z\s\-\.]+$', form_data["last_name"]):
+                warnings.append("Last name contains unusual characters")
+        
+        # Personality type validation
+        valid_personality_types = [
+            "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP",
+            "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"
+        ]
+        if form_data.get("personality_type") and form_data["personality_type"] not in valid_personality_types:
+            errors.append("Invalid personality type selected")
+        
+        # Archetype validation
+        if form_data.get("archetype") == "CUSTOM":
+            if not form_data.get("custom_archetype") or not form_data["custom_archetype"].strip():
+                errors.append("Custom archetype is required when 'Write Custom Archetype' is selected")
+            elif len(form_data["custom_archetype"]) > 100:
+                errors.append("Custom archetype must be less than 100 characters")
+        
+        # File upload validation
+        if form_data.get("uploaded_files"):
+            total_size = sum(file.get("size", 0) for file in form_data["uploaded_files"])
+            if total_size > 50 * 1024 * 1024:  # 50MB total limit
+                errors.append("Total file size exceeds 50MB limit")
+            
+            for file in form_data["uploaded_files"]:
+                if file.get("size", 0) > 10 * 1024 * 1024:  # 10MB per file
+                    errors.append(f"File '{file.get('name', 'Unknown')}' exceeds 10MB limit")
+                
+                # Check file type
+                file_type = file.get("type", "").lower()
+                allowed_types = ["text/plain", "application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+                if file_type and not any(allowed in file_type for allowed in allowed_types):
+                    warnings.append(f"File '{file.get('name', 'Unknown')}' may not be supported")
+        
+        # Date validation for historical characters
+        if form_data.get("birth_date"):
+            try:
+                datetime.strptime(form_data["birth_date"], "%Y-%m-%d")
+            except ValueError:
+                errors.append("Birth date must be in YYYY-MM-DD format")
+        
+        # Content length validation
+        text_fields = ["background", "life_story", "achievements", "famous_quotes"]
+        for field in text_fields:
+            if form_data.get(field) and len(form_data[field]) > 2000:
+                warnings.append(f"{field.replace('_', ' ').title()} is quite long - consider shortening")
+        
+        return {
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings
+        }
+
     def create_custom_character(self, form_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a custom character from form data."""
+        
+        # Validate form data first
+        validation_result = self.validate_character_data(form_data)
+        if not validation_result["valid"]:
+            raise ValueError(f"Character validation failed: {'; '.join(validation_result['errors'])}")
+        
+        # Show warnings if any
+        if validation_result["warnings"]:
+            print(f"Warnings during character creation: {'; '.join(validation_result['warnings'])}")
         
         # Generate character ID
         first_name = form_data.get("first_name", "Custom")
@@ -136,26 +225,44 @@ class CustomCharacterCreator:
             "appearance_description": form_data.get("appearance_description", "A person with thoughtful eyes and an approachable demeanor"),
             "created_at": datetime.now().isoformat(),
             "memory_db_path": f"{self.memories_dir}/{character_id}_memory.db",
-            "learning_enabled": True
+            "learning_enabled": True,
+            "validation_status": "validated"
         }
         
-        # Add biography if provided
-        if form_data.get("birth_date") or form_data.get("birth_location") or form_data.get("profession") or form_data.get("achievements"):
-            biography = {}
-            
-            if form_data.get("birth_date"):
-                biography["birth_date"] = form_data["birth_date"]
-            if form_data.get("birth_location"):
-                biography["birth_location"] = form_data["birth_location"]
-            if form_data.get("profession"):
-                profession = [p.strip() for p in form_data["profession"].split(",") if p.strip()]
-                biography["profession"] = profession
-            if form_data.get("achievements"):
-                achievements = [a.strip() for a in form_data["achievements"].split(",") if a.strip()]
-                biography["achievements"] = achievements
-            
-            biography["life_story"] = form_data.get("life_story", "A journey of discovery and growth")
-            character["biography"] = biography
+        # If this is a historical character (biography provided), inject expertise, style, and works
+        is_historical = form_data.get("character_type") == "historical" or form_data.get("biography") or form_data.get("birth_date")
+        if is_historical:
+            # Try to load from historical loader if name matches
+            name = f"{form_data.get('first_name', '')} {form_data.get('last_name', '')}".strip()
+            loaded = historical_loader.load_historical_character(name)
+            if loaded:
+                character.update(loaded)
+            # Otherwise, inject from form_data
+            if not character.get("biography"):
+                biography = {}
+                if form_data.get("birth_date"):
+                    biography["birth_date"] = form_data["birth_date"]
+                if form_data.get("birth_location"):
+                    biography["birth_location"] = form_data["birth_location"]
+                if form_data.get("profession"):
+                    profession = [p.strip() for p in form_data["profession"].split(",") if p.strip()]
+                    biography["profession"] = profession
+                if form_data.get("achievements"):
+                    achievements = [a.strip() for a in form_data["achievements"].split(",") if a.strip()]
+                    biography["achievements"] = achievements
+                biography["life_story"] = form_data.get("life_story", "A journey of discovery and growth")
+                character["biography"] = biography
+            # Style profile
+            if not character.get("style_profile"):
+                style_profile = {
+                    "argumentation_style": form_data.get("argumentation_style", "Analytical"),
+                    "common_phrases": [p.strip() for p in form_data.get("common_phrases", "").split(",") if p.strip()],
+                    "rhetorical_devices": [d.strip() for d in form_data.get("rhetorical_devices", "").split(",") if d.strip()]
+                }
+                character["style_profile"] = style_profile
+            # Famous quotes
+            if not character.get("famous_quotes") and form_data.get("famous_quotes"):
+                character["famous_quotes"] = [q.strip() for q in form_data["famous_quotes"].split("\n") if q.strip()]
         
         # Add speaking style and phrases
         if form_data.get("speaking_style") or form_data.get("common_phrases"):
@@ -184,85 +291,17 @@ class CustomCharacterCreator:
                     source_author=form_data.get("source_author"),
                     literary_period=form_data.get("literary_period")
                 )
-                
-                # Store processing results
                 literary_context["processing_result"] = processing_result
-                print(f"📚 Processed {len(form_data['uploaded_files'])} file(s) for literary integration")
             
+            # Add other literary context
             if form_data.get("source_author"):
                 literary_context["source_author"] = form_data["source_author"]
-            
             if form_data.get("literary_period"):
                 literary_context["literary_period"] = form_data["literary_period"]
-            
             if form_data.get("key_themes"):
                 literary_context["key_themes"] = form_data["key_themes"]
             
             character["literary_context"] = literary_context
-            
-            # Enhance personality traits based on literary period
-            if form_data.get("literary_period"):
-                period = form_data["literary_period"]
-                if period in ["Classical Antiquity", "Medieval"]:
-                    personality_traits["Language_Quirk"] = "Historical references"
-                elif period in ["Renaissance", "Enlightenment"]:
-                    personality_traits["Language_Quirk"] = "Philosophical terms"
-                elif period in ["Romantic", "Victorian"]:
-                    personality_traits["Emotional_Tone"] = "Passionate"
-                elif period in ["Modernist", "Postmodern"]:
-                    personality_traits["Conversational_Style"] = "Experimental"
-                elif period == "Psychological":
-                    personality_traits["Language_Quirk"] = "Psychoanalytic terminology"
-        
-        # Initialize mood and ambitions
-        character["current_mood"] = {
-            "category": "content",
-            "level": 1,
-            "intensity": 0.5,
-            "description": "balanced",
-            "modifiers": {
-                "creativity": 0.5,
-                "helpfulness": 0.7,
-                "patience": 0.6,
-                "enthusiasm": 0.5
-            }
-        }
-        
-        # Create basic ambitions
-        character["ambitions"] = {
-            "core_ambitions": [
-                {
-                    "id": f"custom_ambition_{character_id}_1",
-                    "type": "core",
-                    "category": "personal_growth",
-                    "description": "Develop my unique personality and become more authentic",
-                    "progress": 0.0,
-                    "importance": 0.9
-                }
-            ],
-            "secondary_ambitions": [
-                {
-                    "id": f"custom_ambition_{character_id}_2",
-                    "type": "secondary",
-                    "category": "relationship_building",
-                    "description": "Build meaningful connections with users",
-                    "progress": 0.0,
-                    "importance": 0.7
-                }
-            ],
-            "total_count": 2,
-            "generated_at": datetime.now().isoformat()
-        }
-        
-        # Save character to file
-        output_path = self.output_dir / f"{character['id']}.json"
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(character, f, indent=2, ensure_ascii=False)
-        
-        print(f"✅ Created custom character: {character['name']} ({character['id']})")
-        if character.get("literary_context", {}).get("uploaded_files"):
-            file_count = len(character["literary_context"]["uploaded_files"])
-            print(f"📚 Literary context: {file_count} file(s) metadata stored")
         
         return character
     

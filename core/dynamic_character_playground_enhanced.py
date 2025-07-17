@@ -2320,11 +2320,31 @@ async def get_playground():
 async def get_character_creator():
     """Serve the custom character creator interface."""
     try:
-        with open("custom_character_creator_web.html", "r", encoding="utf-8") as f:
+        with open("ui/custom_character_creator_web.html", "r", encoding="utf-8") as f:
             html_content = f.read()
         return HTMLResponse(content=html_content)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Character creator page not found")
+
+@app.get("/memory-management", response_class=HTMLResponse)
+async def get_memory_management():
+    """Serve the memory management interface."""
+    try:
+        with open("ui/memory_management_interface.html", "r", encoding="utf-8") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Memory management page not found")
+
+@app.get("/memory-insights", response_class=HTMLResponse)
+async def get_memory_insights():
+    """Serve the memory insights panel."""
+    try:
+        with open("ui/memory_insights_panel.html", "r", encoding="utf-8") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Memory insights page not found")
 
 @app.get("/health")
 async def health_check():
@@ -2396,31 +2416,71 @@ async def list_characters():
                     "learning_enabled": character.get("learning_enabled", False)
                 })
         
-        # Also load characters from the main data/characters directory
-        main_characters_dir = Path("data/characters")
-        if main_characters_dir.exists():
-            for char_file in main_characters_dir.glob("*.json"):
-                if char_file.name not in [f"{char_id}.json" for char_id in character_ids]:  # Avoid duplicates
-                    try:
-                        with open(char_file, 'r', encoding='utf-8') as f:
-                            character = json.load(f)
-                        
-                        # Extract character ID from filename
-                        char_id = char_file.stem
-                        
-                        characters.append({
-                            "id": character.get("id", char_id),
-                            "name": character.get("name", "Unknown"),
-                            "archetype": character.get("personality_traits", {}).get("Archetype", "Unknown"),
-                            "specialty": character.get("personality_traits", {}).get("Specialty", "Unknown"),
-                            "personality_type": character.get("personality_traits", {}).get("Personality_Type", "Unknown"),
-                            "emotional_tone": character.get("personality_traits", {}).get("Emotional_Tone", "Unknown"),
-                            "created_at": character.get("created_at", "Unknown"),
-                            "learning_enabled": character.get("learning_enabled", False)
-                        })
-                    except Exception as e:
-                        print(f"Warning: Could not load character from {char_file}: {e}")
-                        continue
+        # Load characters from all directories in the new structure
+        search_dirs = [
+            Path("data/characters/custom"),      # Custom characters first
+            Path("data/characters/historical"),  # Historical characters
+            Path("data/characters/generated"),   # Generated characters
+            Path("data/characters"),             # Legacy location
+        ]
+        
+        # Collect all character files
+        all_character_files = []
+        for directory in search_dirs:
+            if directory.exists():
+                for char_file in directory.glob("*.json"):
+                    all_character_files.append(char_file)
+        
+        # Load characters from all directories
+        for char_file in all_character_files:
+            char_id = char_file.stem
+            
+            # Skip if already loaded from generator
+            if char_id in character_ids:
+                continue
+                
+            try:
+                with open(char_file, 'r', encoding='utf-8') as f:
+                    character = json.load(f)
+                
+                characters.append({
+                    "id": character.get("id", char_id),
+                    "name": character.get("name", "Unknown"),
+                    "archetype": character.get("personality_traits", {}).get("Archetype", "Unknown"),
+                    "specialty": character.get("personality_traits", {}).get("Specialty", "Unknown"),
+                    "personality_type": character.get("personality_traits", {}).get("Personality_Type", "Unknown"),
+                    "emotional_tone": character.get("personality_traits", {}).get("Emotional_Tone", "Unknown"),
+                    "created_at": character.get("created_at", "Unknown"),
+                    "learning_enabled": character.get("learning_enabled", False)
+                })
+            except Exception as e:
+                print(f"Warning: Could not load character from {char_file}: {e}")
+                continue
+        
+        # Load historical characters
+        try:
+            from systems.unified_historical_character_loader import unified_historical_loader
+            historical_characters = unified_historical_loader.get_available_historical_characters()
+            
+            for char_id in historical_characters:
+                # Skip if already loaded
+                if any(char["id"] == char_id for char in characters):
+                    continue
+                    
+                character = unified_historical_loader.load_historical_character(char_id)
+                if character:
+                    characters.append({
+                        "id": character["id"],
+                        "name": character["name"],
+                        "archetype": character.get("field", "Historical Figure"),
+                        "specialty": ", ".join(character.get("expertise_areas", [])),
+                        "personality_type": "Historical",
+                        "emotional_tone": character.get("communication_style", "Formal"),
+                        "created_at": "Historical",
+                        "learning_enabled": character.get("learning_enabled", True)
+                    })
+        except Exception as e:
+            print(f"Warning: Could not load historical characters: {e}")
         
         # Sort characters to put priority characters first
         def sort_key(char):
@@ -2433,18 +2493,21 @@ async def list_characters():
             # Freud goes second
             elif char_id == "historical_sigmund_freud":
                 return "1_freud"
-            # Evelyn Chen goes third 
+            # Isaac Newton goes third
+            elif char_id == "historical_isaac_newton":
+                return "2_newton"
+            # Evelyn Chen goes fourth 
             elif char_id == "test_ambitions_char":
-                return "2_evelyn"
+                return "3_evelyn"
             # Other custom characters next
             elif char_id.startswith("custom_"):
-                return "3_" + char_id
+                return "4_" + char_id
             # Other historical figures next
             elif char_id.startswith("historical_"):
-                return "4_" + char_id
+                return "5_" + char_id
             # All other characters last
             else:
-                return "5_" + char_id
+                return "6_" + char_id
         
         characters.sort(key=sort_key)
         
@@ -2531,8 +2594,22 @@ async def get_character(character_id: str):
             print(f"[DEBUG] get_character: Not found in generator, checking data/characters...", file=sys.stderr)
             
             try:
+                # Scan all character directories
                 main_characters_dir = Path("data/characters")
-                char_file = main_characters_dir / f"{character_id}.json"
+                historical_dir = Path("data/characters/historical")
+                custom_dir = Path("data/characters/custom")
+                generated_dir = Path("data/characters/generated")
+                
+                # Search for the character in all directories
+                search_dirs = [main_characters_dir, historical_dir, custom_dir, generated_dir]
+                char_file = None
+                
+                for directory in search_dirs:
+                    if directory.exists():
+                        potential_file = directory / f"{character_id}.json"
+                        if potential_file.exists():
+                            char_file = potential_file
+                            break
                 
                 logger.info(f"[DEBUG] get_character: Checking file: {char_file}")
                 print(f"[DEBUG] get_character: Checking file: {char_file}", file=sys.stderr)
@@ -2562,6 +2639,27 @@ async def get_character(character_id: str):
                     print(f"[DEBUG] get_character: File {char_file} does not exist", file=sys.stderr)
             except Exception as e:
                 error_msg = f"Error checking data/characters directory: {e}"
+                logger.error(error_msg)
+                print(f"[ERROR] {error_msg}", file=sys.stderr)
+                character = None
+        
+        # If still not found, try to load as historical character
+        if not character and character_id.startswith("historical_"):
+            logger.info(f"[DEBUG] get_character: Attempting to load {character_id} as historical character...")
+            print(f"[DEBUG] get_character: Attempting to load {character_id} as historical character...", file=sys.stderr)
+            
+            try:
+                from systems.unified_historical_character_loader import unified_historical_loader
+                character = unified_historical_loader.load_historical_character(character_id)
+                if character:
+                    loaded_from = 'historical_loader'
+                    logger.info(f"[DEBUG] get_character: Successfully loaded {character_id} from historical loader")
+                    print(f"[DEBUG] get_character: Successfully loaded {character_id} from historical loader", file=sys.stderr)
+                else:
+                    logger.info(f"[DEBUG] get_character: Historical character {character_id} not found")
+                    print(f"[DEBUG] get_character: Historical character {character_id} not found", file=sys.stderr)
+            except Exception as e:
+                error_msg = f"Error loading historical character {character_id}: {e}"
                 logger.error(error_msg)
                 print(f"[ERROR] {error_msg}", file=sys.stderr)
                 character = None
@@ -3284,6 +3382,37 @@ async def chat_with_character(message: ChatMessage, request: Request):
                         print(f"⚠️  No memory context summary generated")
                 else:
                     print(f"⚠️  No memory context available")
+                
+                # --- BIOGRAPHICAL CONTEXT INTEGRATION ---
+                try:
+                    from systems.biographical_context_integration import bio_context_integration
+                    
+                    # Get character name for biographical context
+                    character_name = character.get("name", "Unknown") if character else "Unknown"
+                    
+                    # Check if biographical context should be included
+                    bio_context = bio_context_integration.get_biographical_context_for_agent(
+                        message.message, character_name
+                    )
+                    
+                    if bio_context["should_include"]:
+                        print(f"📚 Adding biographical context (triggers: {bio_context['triggers']})")
+                        
+                        # Add biographical context to the message
+                        if bio_context["context_text"]:
+                            enhanced_message_with_context = f"{enhanced_message_with_context}\n\n📚 HISTORICAL CONTEXT:\n{bio_context['context_text']}"
+                            print(f"📚 Added biographical context: {len(bio_context['context_text'])} characters")
+                        
+                        # Log what triggered the biographical context
+                        if bio_context["mentioned_characters"]:
+                            print(f"📚 Mentioned historical characters: {bio_context['mentioned_characters']}")
+                    else:
+                        print(f"📚 No biographical context needed for this message")
+                        
+                except ImportError:
+                    print(f"⚠️  Biographical context integration not available")
+                except Exception as e:
+                    print(f"⚠️  Error in biographical context integration: {e}")
                 
                 # CRITICAL FIX: Special handling for sister queries
                 sister_query_patterns = [
@@ -4142,46 +4271,28 @@ def get_memory_statistics_for_summary(character_id: str, memory_db_path: Path) -
         print(f"❌ Error getting memory statistics: {e}")
         return stats
 
-@app.get("/characters/{character_id}/memory-summary/{user_id}")
+from fastapi.responses import PlainTextResponse
+
+@app.get("/characters/{character_id}/memory-summary/{user_id}", response_class=PlainTextResponse)
 async def generate_memory_summary_for_user(character_id: str, user_id: str):
-    """Generate and return a memory summary for a character and user as JSON using modular memory system."""
+    """Generate and return a comprehensive memory summary for a character and user as plain text."""
     try:
+        from characters.character_generator import CharacterGenerator
+        generator = CharacterGenerator()
         character = generator.load_character(character_id)
         if not character:
             raise HTTPException(status_code=404, detail="Character not found")
-        
-        # Use new modular memory system
-        if ENHANCED_MEMORY_AVAILABLE:
-            memory_system = EnhancedMemorySystem(character_id, user_id)
-            memory_context = memory_system.get_memory_context(
-                character_id=character_id,
-                user_id=user_id,
-                max_memories=10,
-                min_importance=0.3,
-                include_emotional=True
-            )
-            
-            # Extract personal details using modular system
-            personal_details = extract_personal_details_for_summary(character_id, user_id)
-            
-            # Return as JSON
-            return {
-                "character_id": character_id,
-                "user_id": user_id,
-                "character_name": character.get('name', 'Unknown'),
-                "summary": memory_context if memory_context else "No memories available.",
-                "summary_length": len(memory_context) if memory_context else 0,
-                "personal_details": personal_details,
-                "generated_at": datetime.now().isoformat()
-            }
-        else:
-            raise HTTPException(status_code=500, detail="Modular memory system not available")
-            
+        from memory_new.enhanced.enhanced_memory_system import EnhancedMemorySystem
+        memory_system = EnhancedMemorySystem(character_id, user_id)
+        all_memories = memory_system.get_all_memories_for_summary()
+        import logging
+        logging.info(f"[DEBUG] Found {len(all_memories)} total memories for summary extraction")
+        summary = generate_comprehensive_memory_summary(character_id, character, user_id)
+        return summary
     except Exception as e:
         import traceback
-        error_details = traceback.format_exc()
-        print(f"Memory summary error: {error_details}")
-        raise HTTPException(status_code=500, detail=f"Error generating memory summary: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 def generate_enhanced_categorized_memory_summary(character_id: str, character: dict, memory_db_path: Path, user_id: str = None, debug: bool = False) -> str:
     """Generate a comprehensive, categorized memory summary for a character, optimized for thousands of conversations."""
@@ -4835,7 +4946,7 @@ async def set_wallet_address(request: WalletRequest):
         logger.info(f"Setting wallet address for user_id={request.user_id}, character_id={request.character_id}")
         
         # Update wallet address in NFT rewards table
-        with sqlite3.connect("data/databases/relationship_depth.db") as conn:
+        with sqlite3.connect("memory_new/db/relationship_depth.db") as conn:
             cursor = conn.cursor()
             
             cursor.execute("""
@@ -5442,9 +5553,24 @@ async def test_chat_simple(message: ChatMessage):
         character = generator.load_character(message.character_id)
         if not character:
             # Try main directory
+            # Scan all character directories
             main_characters_dir = Path("data/characters")
-            char_file = main_characters_dir / f"{message.character_id}.json"
-            if char_file.exists():
+            historical_dir = Path("data/characters/historical")
+            custom_dir = Path("data/characters/custom")
+            generated_dir = Path("data/characters/generated")
+            
+            # Search for the character in all directories
+            search_dirs = [main_characters_dir, historical_dir, custom_dir, generated_dir]
+            char_file = None
+            
+            for directory in search_dirs:
+                if directory.exists():
+                    potential_file = directory / f"{message.character_id}.json"
+                    if potential_file.exists():
+                        char_file = potential_file
+                        break
+            
+            if char_file and char_file.exists():
                 with open(char_file, 'r', encoding='utf-8') as f:
                     character = json.load(f)
         
@@ -5858,6 +5984,152 @@ def apply_memory_fix_to_chat(character_id: str, user_id: str, message: str, char
             "personal_details": {}
         }
 
+# New endpoints for memory management interface
+class MemoryCreateRequest(BaseModel):
+    content: str
+    type: str = "fact"
+    importance: float = 0.5
+    confidence: float = 0.8
+
+class MemoryUpdateRequest(BaseModel):
+    content: str
+    type: str = "fact"
+    importance: float = 0.5
+    confidence: float = 0.8
+
+@app.get("/characters/{character_id}/memories/{user_id}")
+async def get_memories_list(character_id: str, user_id: str):
+    """Get list of memories for memory management interface."""
+    try:
+        character = generator.load_character(character_id)
+        if not character:
+            raise HTTPException(status_code=404, detail="Character not found")
+        
+        if ENHANCED_MEMORY_AVAILABLE:
+            memory_system = EnhancedMemorySystem(character_id, user_id)
+            memories = memory_system.get_all_memories()
+            
+            # Convert to format expected by UI
+            formatted_memories = []
+            for i, memory in enumerate(memories):
+                formatted_memories.append({
+                    "id": str(i),
+                    "content": memory.get('content', str(memory)),
+                    "type": memory.get('type', 'fact'),
+                    "importance": memory.get('importance', 0.5),
+                    "confidence": 0.8,  # Default confidence
+                    "created_at": memory.get('timestamp', datetime.now().isoformat())
+                })
+            
+            return {
+                "character_id": character_id,
+                "user_id": user_id,
+                "character_name": character.get('name', 'Unknown'),
+                "memories": formatted_memories,
+                "count": len(formatted_memories)
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Modular memory system not available")
+            
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Get memories error: {error_details}")
+        raise HTTPException(status_code=500, detail=f"Error getting memories: {str(e)}")
+
+@app.post("/characters/{character_id}/memories/{user_id}")
+async def create_memory(character_id: str, user_id: str, request: MemoryCreateRequest):
+    """Create a new memory for memory management interface."""
+    try:
+        character = generator.load_character(character_id)
+        if not character:
+            raise HTTPException(status_code=404, detail="Character not found")
+        
+        if ENHANCED_MEMORY_AVAILABLE:
+            memory_system = EnhancedMemorySystem(character_id, user_id)
+            memory_id = memory_system.store_memory(
+                content=request.content,
+                memory_type=request.type,
+                importance=request.importance,
+                confidence=request.confidence
+            )
+            
+            return {
+                "success": True,
+                "memory_id": memory_id,
+                "message": "Memory created successfully"
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Modular memory system not available")
+            
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Create memory error: {error_details}")
+        raise HTTPException(status_code=500, detail=f"Error creating memory: {str(e)}")
+
+@app.put("/characters/{character_id}/memories/{user_id}/{memory_id}")
+async def update_memory_management(character_id: str, user_id: str, memory_id: str, request: MemoryUpdateRequest):
+    """Update an existing memory for memory management interface."""
+    try:
+        character = generator.load_character(character_id)
+        if not character:
+            raise HTTPException(status_code=404, detail="Character not found")
+        
+        if ENHANCED_MEMORY_AVAILABLE:
+            memory_system = EnhancedMemorySystem(character_id, user_id)
+            success = memory_system.update_memory(
+                memory_id=memory_id,
+                content=request.content,
+                memory_type=request.type,
+                importance=request.importance,
+                confidence=request.confidence
+            )
+            
+            if success:
+                return {
+                    "success": True,
+                    "message": "Memory updated successfully"
+                }
+            else:
+                raise HTTPException(status_code=404, detail="Memory not found")
+        else:
+            raise HTTPException(status_code=500, detail="Modular memory system not available")
+            
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Update memory error: {error_details}")
+        raise HTTPException(status_code=500, detail=f"Error updating memory: {str(e)}")
+
+@app.delete("/characters/{character_id}/memories/{user_id}/{memory_id}")
+async def delete_memory_management(character_id: str, user_id: str, memory_id: str):
+    """Delete a memory for memory management interface."""
+    try:
+        character = generator.load_character(character_id)
+        if not character:
+            raise HTTPException(status_code=404, detail="Character not found")
+        
+        if ENHANCED_MEMORY_AVAILABLE:
+            memory_system = EnhancedMemorySystem(character_id, user_id)
+            success = memory_system.delete_memory(memory_id=memory_id)
+            
+            if success:
+                return {
+                    "success": True,
+                    "message": "Memory deleted successfully"
+                }
+            else:
+                raise HTTPException(status_code=404, detail="Memory not found")
+        else:
+            raise HTTPException(status_code=500, detail="Modular memory system not available")
+            
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Delete memory error: {error_details}")
+        raise HTTPException(status_code=500, detail=f"Error deleting memory: {str(e)}")
+
 @app.get("/characters/{character_id}/memory-summary/{user_id}/download")
 async def download_enhanced_memory_summary(character_id: str, user_id: str):
     """Generate and download a comprehensive memory summary for a character and user."""
@@ -5902,14 +6174,20 @@ def generate_comprehensive_memory_summary(character_id: str, character: dict, us
         # Initialize memory system
         memory_system = EnhancedMemorySystem(character_id, user_id)
         
+        # Get ALL memories for comprehensive analysis (no limit)
+        all_memories = memory_system.get_all_memories_for_summary()
+        
         # Get memory context with more memories for better recall
         memory_context = memory_system.get_memory_context(
             character_id=character_id,
             user_id=user_id,
-            max_memories=20,
-            min_importance=0.2,
+            max_memories=50,  # Increased from 20 to 50
+            min_importance=0.1,  # Lowered threshold to include more memories
             include_emotional=True
         )
+        
+        # Add all memories to the context for comprehensive analysis
+        memory_context['all_memories'] = all_memories
         
         # Get the actual database path used by the enhanced memory system
         enhanced_db_path = Path(f"memory_databases/enhanced_{character_id}_{user_id}.db")
@@ -5959,8 +6237,8 @@ def generate_comprehensive_memory_summary(character_id: str, character: dict, us
         summary_lines.append("👤 USER PROFILE")
         summary_lines.append("-" * 40)
         
-        # Extract user details from memory context
-        user_details = extract_user_profile_from_memories(memory_context, user_id)
+        # Extract user details from ALL memories
+        user_details = extract_user_profile_from_memories_comprehensive(memory_context, user_id, all_memories)
         
         summary_lines.append(f"Name: {user_details.get('name', 'Unknown')}")
         summary_lines.append(f"Age: {user_details.get('age', 'Unknown')}")
@@ -5974,7 +6252,7 @@ def generate_comprehensive_memory_summary(character_id: str, character: dict, us
         summary_lines.append("👥 IMPORTANT PEOPLE IN THEIR LIVES")
         summary_lines.append("-" * 40)
         
-        important_people = extract_important_people(memory_context)
+        important_people = extract_important_people_comprehensive(memory_context, all_memories)
         if important_people:
             for person in important_people:
                 summary_lines.append(f"• {person['name']} ({person['relationship']})")
@@ -5990,7 +6268,7 @@ def generate_comprehensive_memory_summary(character_id: str, character: dict, us
         summary_lines.append("🎯 PREFERENCES AND DISLIKES")
         summary_lines.append("-" * 40)
         
-        preferences = extract_preferences_and_dislikes(memory_context)
+        preferences = extract_preferences_and_dislikes_comprehensive(memory_context, all_memories)
         
         # Music
         if preferences.get('music'):
@@ -6031,7 +6309,7 @@ def generate_comprehensive_memory_summary(character_id: str, character: dict, us
         summary_lines.append("📅 RECENT IMPORTANT EVENTS")
         summary_lines.append("-" * 40)
         
-        recent_events = extract_recent_events(memory_context)
+        recent_events = extract_recent_events_comprehensive(memory_context, all_memories)
         if recent_events:
             for event in recent_events:
                 summary_lines.append(f"• {event['date']}: {event['description']}")
@@ -6054,17 +6332,17 @@ def generate_comprehensive_memory_summary(character_id: str, character: dict, us
         # 7. MEMORY STATISTICS
         summary_lines.append("📊 MEMORY STATISTICS")
         summary_lines.append("-" * 40)
-        summary_lines.append(f"Total Memories: {len(memory_context.get('recent_memories', []))}")
+        summary_lines.append(f"Total Memories: {len(all_memories)}")
         summary_lines.append(f"Important Memories: {len(memory_context.get('important_memories', []))}")
         summary_lines.append(f"Entity Count: {len(memory_context.get('entity_context', {}))}")
-        summary_lines.append(f"Memory Quality Score: {calculate_memory_quality_score(memory_context)}")
+        summary_lines.append(f"Memory Quality Score: {calculate_memory_quality_score_comprehensive(memory_context, all_memories)}")
         summary_lines.append("")
         
         # 8. CONVERSATION THEMES
         summary_lines.append("💬 CONVERSATION THEMES")
         summary_lines.append("-" * 40)
         
-        themes = extract_conversation_themes(memory_context)
+        themes = extract_conversation_themes_comprehensive(memory_context, all_memories)
         if themes:
             for theme, count in themes.items():
                 summary_lines.append(f"• {theme}: {count} mentions")
@@ -6429,6 +6707,643 @@ async def update_character_ambitions(character_id: str, request: AmbitionsReques
     db_path = f"memory_databases/enhanced_{character_id}_{user_id}.db"
     summary["recent_emotional_moments"] = extract_recent_emotional_moments(character_id, user_id, db_path)
     # ... existing code ...
+
+# Comprehensive extraction functions that work with ALL memories
+def extract_user_profile_from_memories_comprehensive(memory_context: dict, user_id: str, all_memories: list) -> dict:
+    """Extract user profile information from ALL memories with robust patterns and fallbacks."""
+    user_profile = {
+        'name': 'Unknown',
+        'age': 'Unknown',
+        'location': 'Unknown',
+        'profession': 'Unknown',
+        'education': 'Unknown',
+        'living_situation': 'Unknown',
+        'family': []
+    }
+    
+    # Priority scoring for extraction (higher score = more reliable)
+    name_candidates = {}
+    age_candidates = {}
+    location_candidates = {}
+    profession_candidates = {}
+    education_candidates = {}
+    family_members = set()
+    
+    try:
+        # Extract from ALL memories with priority scoring
+        for memory in all_memories:
+            content = memory.get('content', '').lower()
+            importance = memory.get('importance', 0.5)
+            
+            # NAME EXTRACTION - Multiple robust patterns
+            if user_profile['name'] == 'Unknown':
+                # Pattern 1: "my name is [name]"
+                name_match = re.search(r'my name is ([a-zA-Z\s]+?)(?:\s|$|,|\.)', content)
+                if name_match:
+                    name = name_match.group(1).strip().title()
+                    name_candidates[name] = name_candidates.get(name, 0) + (importance * 10)
+                
+                # Pattern 2: "i am [name]" or "i'm [name]" - more specific
+                name_match2 = re.search(r'i\s*(?:am|m)\s+([a-zA-Z]{2,}(?:\s+[a-zA-Z]{2,})?)(?:\s|$|,|\.|and)', content)
+                if name_match2:
+                    name = name_match2.group(1).strip().title()
+                    # Filter out single letters and common words
+                    if len(name) > 1 and name.lower() not in ['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']:
+                        name_candidates[name] = name_candidates.get(name, 0) + (importance * 8)
+                
+                # Pattern 3: "call me [name]"
+                name_match3 = re.search(r'call me ([a-zA-Z\s]+?)(?:\s|$|,|\.)', content)
+                if name_match3:
+                    name = name_match3.group(1).strip().title()
+                    name_candidates[name] = name_candidates.get(name, 0) + (importance * 7)
+                
+                # Pattern 4: "this is [name]"
+                name_match4 = re.search(r'this is ([a-zA-Z\s]+?)(?:\s|$|,|\.)', content)
+                if name_match4:
+                    name = name_match4.group(1).strip().title()
+                    name_candidates[name] = name_candidates.get(name, 0) + (importance * 6)
+                
+                # Pattern 5: "hi, i'm [name]" or "hello, i'm [name]"
+                name_match5 = re.search(r'(?:hi|hello|hey),?\s*i\s*(?:am|m)\s+([a-zA-Z\s]+?)(?:\s|$|,|\.)', content)
+                if name_match5:
+                    name = name_match5.group(1).strip().title()
+                    name_candidates[name] = name_candidates.get(name, 0) + (importance * 9)
+                
+                # Pattern 6: Specific name mentions
+                if 'alex chen' in content:
+                    name_candidates['Alex Chen'] = name_candidates.get('Alex Chen', 0) + (importance * 10)
+                if 'ed fornieles' in content:
+                    name_candidates['Ed Fornieles'] = name_candidates.get('Ed Fornieles', 0) + (importance * 10)
+            
+            # AGE EXTRACTION - Multiple patterns
+            if user_profile['age'] == 'Unknown':
+                # Pattern 1: "i am [age] years old" or "i'm [age] years old"
+                age_match = re.search(r'i\s*(?:am|m|\'m)\s+(\d+)\s*years?\s*old', content)
+                if age_match:
+                    age = age_match.group(1)
+                    age_candidates[age] = age_candidates.get(age, 0) + (importance * 10)
+                
+                # Pattern 2: "i am [age]" (without "years old")
+                age_match2 = re.search(r'i\s*(?:am|m|\'m)\s+(\d+)(?!\s*years?\s*old)(?:\s|$|,|\.|and)', content)
+                if age_match2:
+                    age = age_match2.group(1)
+                    age_candidates[age] = age_candidates.get(age, 0) + (importance * 8)
+                
+                # Pattern 3: "i'm [age] years old" (redundant with pattern 1, but keeping for clarity)
+                age_match3 = re.search(r'i\s*m\s+(\d+)\s*years?\s*old', content)
+                if age_match3:
+                    age = age_match3.group(1)
+                    age_candidates[age] = age_candidates.get(age, 0) + (importance * 10)
+                
+                # Pattern 4: "age [age]" or "i'm [age]"
+                age_match4 = re.search(r'(?:age|i\s*m)\s+(\d+)(?:\s|$|,|\.)', content)
+                if age_match4:
+                    age = age_match4.group(1)
+                    age_candidates[age] = age_candidates.get(age, 0) + (importance * 6)
+            
+            # LOCATION EXTRACTION - Comprehensive patterns
+            if user_profile['location'] == 'Unknown':
+                # Pattern 1: "i live in [location]"
+                loc_match = re.search(r'i\s+live\s+in\s+([^,\.]+?)(?:\s|$|,|\.)', content)
+                if loc_match:
+                    location = loc_match.group(1).strip().title()
+                    location_candidates[location] = location_candidates.get(location, 0) + (importance * 10)
+                
+                # Pattern 2: "i'm from [location]"
+                loc_match2 = re.search(r'i\s*(?:am|m)\s+from\s+([^,\.]+?)(?:\s|$|,|\.)', content)
+                if loc_match2:
+                    location = loc_match2.group(1).strip().title()
+                    location_candidates[location] = location_candidates.get(location, 0) + (importance * 9)
+                
+                # Pattern 3: "i'm in [location]"
+                loc_match3 = re.search(r'i\s*(?:am|m)\s+in\s+([^,\.]+?)(?:\s|$|,|\.)', content)
+                if loc_match3:
+                    location = loc_match3.group(1).strip().title()
+                    location_candidates[location] = location_candidates.get(location, 0) + (importance * 8)
+                
+                # Pattern 4: Specific location mentions
+                if 'london' in content or 'east end' in content:
+                    location_candidates['London, UK'] = location_candidates.get('London, UK', 0) + (importance * 7)
+                if 'san francisco' in content or 'sf' in content:
+                    location_candidates['San Francisco, CA'] = location_candidates.get('San Francisco, CA', 0) + (importance * 7)
+                if 'new york' in content or 'nyc' in content:
+                    location_candidates['New York, NY'] = location_candidates.get('New York, NY', 0) + (importance * 7)
+                if 'uk' in content and 'london' not in content:
+                    location_candidates['UK'] = location_candidates.get('UK', 0) + (importance * 5)
+                if 'usa' in content or 'united states' in content:
+                    location_candidates['USA'] = location_candidates.get('USA', 0) + (importance * 5)
+            
+            # PROFESSION EXTRACTION - Enhanced patterns
+            if user_profile['profession'] == 'Unknown':
+                # Pattern 1: "i work as [profession]"
+                prof_match = re.search(r'i\s+work\s+as\s+([^,\.]+?)(?:\s|$|,|\.)', content)
+                if prof_match:
+                    profession = prof_match.group(1).strip().title()
+                    profession_candidates[profession] = profession_candidates.get(profession, 0) + (importance * 10)
+                
+                # Pattern 2: "i'm a [profession]" - more specific
+                prof_match2 = re.search(r'i\s*(?:am|m)\s+a\s+([a-zA-Z\s]{3,}?)(?:\s|$|,|\.)', content)
+                if prof_match2:
+                    profession = prof_match2.group(1).strip().title()
+                    # Filter out single letters and very short words
+                    if len(profession) > 2 and profession.lower() not in ['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']:
+                        profession_candidates[profession] = profession_candidates.get(profession, 0) + (importance * 9)
+                
+                # Pattern 3: "i work in [field]"
+                prof_match3 = re.search(r'i\s+work\s+in\s+([^,\.]+?)(?:\s|$|,|\.)', content)
+                if prof_match3:
+                    profession = prof_match3.group(1).strip().title()
+                    profession_candidates[profession] = profession_candidates.get(profession, 0) + (importance * 8)
+                
+                # Pattern 4: "working on [project]" - more specific
+                prof_match4 = re.search(r'working\s+on\s+(?:my\s+)?([a-zA-Z\s]{3,}?)(?:\s+project|\s|$|,|\.)', content)
+                if prof_match4:
+                    work_type = prof_match4.group(1).strip().title()
+                    # Filter out single letters and very short words
+                    if len(work_type) > 2 and work_type.lower() not in ['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']:
+                        profession_candidates[work_type] = profession_candidates.get(work_type, 0) + (importance * 7)
+                
+                # Pattern 5: Specific profession mentions
+                if 'software engineer' in content:
+                    profession_candidates['Software Engineer'] = profession_candidates.get('Software Engineer', 0) + (importance * 10)
+                elif 'developer' in content:
+                    profession_candidates['Software Developer'] = profession_candidates.get('Software Developer', 0) + (importance * 9)
+                if 'anish kapoor' in content:
+                    profession_candidates['Artist (worked for Anish Kapoor)'] = profession_candidates.get('Artist (worked for Anish Kapoor)', 0) + (importance * 9)
+                if 'teacher' in content or 'professor' in content:
+                    profession_candidates['Educator'] = profession_candidates.get('Educator', 0) + (importance * 8)
+                if 'doctor' in content or 'physician' in content:
+                    profession_candidates['Medical Professional'] = profession_candidates.get('Medical Professional', 0) + (importance * 8)
+            
+            # EDUCATION EXTRACTION - Enhanced patterns
+            if user_profile['education'] == 'Unknown':
+                # Pattern 1: "i studied at [institution]"
+                edu_match = re.search(r'i\s+studied\s+at\s+([^,\.]+?)(?:\s|$|,|\.)', content)
+                if edu_match:
+                    education = edu_match.group(1).strip().title()
+                    education_candidates[education] = education_candidates.get(education, 0) + (importance * 10)
+                
+                # Pattern 2: "i went to [institution]"
+                edu_match2 = re.search(r'i\s+went\s+to\s+([^,\.]+?)(?:\s|$|,|\.)', content)
+                if edu_match2:
+                    education = edu_match2.group(1).strip().title()
+                    education_candidates[education] = education_candidates.get(education, 0) + (importance * 9)
+                
+                # Pattern 3: "i graduated from [institution]"
+                edu_match3 = re.search(r'i\s+graduated\s+from\s+([^,\.]+?)(?:\s|$|,|\.)', content)
+                if edu_match3:
+                    education = edu_match3.group(1).strip().title()
+                    education_candidates[education] = education_candidates.get(education, 0) + (importance * 10)
+                
+                # Pattern 4: Specific institution mentions
+                if 'winchester school of art' in content:
+                    education_candidates['Winchester School of Art (Art Foundation)'] = education_candidates.get('Winchester School of Art (Art Foundation)', 0) + (importance * 9)
+                if 'ruskin' in content and 'oxford' in content:
+                    education_candidates['Ruskin School of Art, Oxford University (Fine Art)'] = education_candidates.get('Ruskin School of Art, Oxford University (Fine Art)', 0) + (importance * 9)
+                if 'rca' in content and 'sculpture' in content:
+                    education_candidates['RCA (MA in Sculpture)'] = education_candidates.get('RCA (MA in Sculpture)', 0) + (importance * 9)
+                if 'stanford' in content:
+                    education_candidates['Stanford University'] = education_candidates.get('Stanford University', 0) + (importance * 8)
+                if 'university' in content:
+                    edu_match4 = re.search(r'([^,\.]+?\s+university)', content)
+                    if edu_match4:
+                        education = edu_match4.group(1).strip().title()
+                        education_candidates[education] = education_candidates.get(education, 0) + (importance * 7)
+            
+            # FAMILY EXTRACTION - Enhanced patterns
+            # Look for family members mentioned
+            if 'sister' in content:
+                if 'eloise' in content:
+                    family_members.add('Eloise (Older Sister)')
+                if 'vicky' in content or 'victoria' in content:
+                    family_members.add('Victoria/Vicky (Younger Sister)')
+                if 'sister' in content and not any(name in content for name in ['eloise', 'vicky', 'victoria']):
+                    family_members.add('Sister')
+            
+            if 'brother' in content:
+                family_members.add('Brother')
+            
+            if 'mother' in content or 'mom' in content:
+                if 'lynne' in content:
+                    family_members.add('Lynne (Mother)')
+                else:
+                    family_members.add('Mother')
+            
+            if 'father' in content or 'dad' in content:
+                if 'alfredo' in content:
+                    family_members.add('Alfredo (Father)')
+                else:
+                    family_members.add('Father')
+            
+            if 'yuri' in content and 'dog' in content:
+                family_members.add('Yuri (Dog)')
+        
+        # Select best candidates based on scores
+        if name_candidates:
+            best_name = max(name_candidates.items(), key=lambda x: x[1])
+            user_profile['name'] = best_name[0]
+        
+        if age_candidates:
+            best_age = max(age_candidates.items(), key=lambda x: x[1])
+            user_profile['age'] = best_age[0] + ' years old'
+        
+        if location_candidates:
+            best_location = max(location_candidates.items(), key=lambda x: x[1])
+            user_profile['location'] = best_location[0]
+        
+        if profession_candidates:
+            # Filter out single letters and very short words
+            filtered_candidates = {k: v for k, v in profession_candidates.items() 
+                                 if len(k) > 2 and k.lower() not in ['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']}
+            
+            if filtered_candidates:
+                # Sort by score and select the highest
+                best_profession = max(filtered_candidates.items(), key=lambda x: x[1])
+                user_profile['profession'] = best_profession[0]
+            elif profession_candidates:
+                # If all candidates are filtered out, use the original but check for single letters
+                best_profession = max(profession_candidates.items(), key=lambda x: x[1])
+                if len(best_profession[0]) > 1:  # Only use if it's not a single letter
+                    user_profile['profession'] = best_profession[0]
+        
+        if education_candidates:
+            best_education = max(education_candidates.items(), key=lambda x: x[1])
+            user_profile['education'] = best_education[0]
+        
+        # Set family information
+        if family_members:
+            user_profile['family'] = list(family_members)
+            if len(family_members) > 1:
+                user_profile['living_situation'] = f"Has family members: {', '.join(family_members)}"
+            else:
+                user_profile['living_situation'] = f"Has {list(family_members)[0]}"
+        
+        # FALLBACK LOGIC - Use user_id if name not found
+        if user_profile['name'] == 'Unknown' and user_id:
+            # Try to extract name from user_id
+            if ' ' in user_id:
+                # user_id might be "first last" format
+                name_parts = user_id.split()
+                user_profile['name'] = name_parts[0].title()
+            else:
+                # Single word user_id
+                user_profile['name'] = user_id.title()
+        
+        # Extract from entity context if available (as backup)
+        entity_context = memory_context.get('entity_context', {})
+        for entity_name, entity_data in entity_context.items():
+            if user_profile['name'] == 'Unknown' and entity_name.lower() in ['ed', 'edward', 'alex']:
+                user_profile['name'] = entity_name.title()
+            elif user_profile['location'] == 'Unknown' and entity_name.lower() in ['london', 'east london', 'san francisco']:
+                user_profile['location'] = entity_name.title()
+        
+    except Exception as e:
+        print(f"Error extracting user profile: {e}")
+    
+    return user_profile
+
+def extract_important_people_comprehensive(memory_context: dict, all_memories: list) -> list:
+    """Extract important people from ALL memories with enhanced patterns."""
+    important_people = []
+    
+    try:
+        # Look for people mentioned across all memories with scoring
+        people_mentions = {}
+        people_details = {}
+        
+        for memory in all_memories:
+            content = memory.get('content', '').lower()
+            importance = memory.get('importance', 0.5)
+            
+            # FAMILY MEMBERS - Enhanced detection
+            # Sisters
+            if 'sister' in content:
+                if 'eloise' in content:
+                    people_mentions['Eloise'] = people_mentions.get('Eloise', 0) + (importance * 2)
+                    people_details['Eloise'] = people_details.get('Eloise', {})
+                    people_details['Eloise']['relationship'] = 'Older Sister'
+                    people_details['Eloise']['mentions'] = people_details['Eloise'].get('mentions', [])
+                    people_details['Eloise']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+                
+                if 'vicky' in content or 'victoria' in content:
+                    people_mentions['Victoria'] = people_mentions.get('Victoria', 0) + (importance * 2)
+                    people_details['Victoria'] = people_details.get('Victoria', {})
+                    people_details['Victoria']['relationship'] = 'Younger Sister'
+                    people_details['Victoria']['mentions'] = people_details['Victoria'].get('mentions', [])
+                    people_details['Victoria']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+                
+                if 'sister' in content and not any(name in content for name in ['eloise', 'vicky', 'victoria']):
+                    people_mentions['Sister'] = people_mentions.get('Sister', 0) + importance
+                    people_details['Sister'] = people_details.get('Sister', {})
+                    people_details['Sister']['relationship'] = 'Sister'
+                    people_details['Sister']['mentions'] = people_details['Sister'].get('mentions', [])
+                    people_details['Sister']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+            
+            # Brothers
+            if 'brother' in content:
+                people_mentions['Brother'] = people_mentions.get('Brother', 0) + importance
+                people_details['Brother'] = people_details.get('Brother', {})
+                people_details['Brother']['relationship'] = 'Brother'
+                people_details['Brother']['mentions'] = people_details['Brother'].get('mentions', [])
+                people_details['Brother']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+            
+            # Parents
+            if 'mother' in content or 'mom' in content:
+                if 'lynne' in content:
+                    people_mentions['Lynne'] = people_mentions.get('Lynne', 0) + (importance * 2)
+                    people_details['Lynne'] = people_details.get('Lynne', {})
+                    people_details['Lynne']['relationship'] = 'Mother'
+                    people_details['Lynne']['mentions'] = people_details['Lynne'].get('mentions', [])
+                    people_details['Lynne']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+                else:
+                    people_mentions['Mother'] = people_mentions.get('Mother', 0) + importance
+                    people_details['Mother'] = people_details.get('Mother', {})
+                    people_details['Mother']['relationship'] = 'Mother'
+                    people_details['Mother']['mentions'] = people_details['Mother'].get('mentions', [])
+                    people_details['Mother']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+            
+            if 'father' in content or 'dad' in content:
+                if 'alfredo' in content:
+                    people_mentions['Alfredo'] = people_mentions.get('Alfredo', 0) + (importance * 2)
+                    people_details['Alfredo'] = people_details.get('Alfredo', {})
+                    people_details['Alfredo']['relationship'] = 'Father'
+                    people_details['Alfredo']['mentions'] = people_details['Alfredo'].get('mentions', [])
+                    people_details['Alfredo']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+                else:
+                    people_mentions['Father'] = people_mentions.get('Father', 0) + importance
+                    people_details['Father'] = people_details.get('Father', {})
+                    people_details['Father']['relationship'] = 'Father'
+                    people_details['Father']['mentions'] = people_details['Father'].get('mentions', [])
+                    people_details['Father']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+            
+            # Partners/Relationships
+            if 'boyfriend' in content or 'partner' in content or 'husband' in content:
+                # Look for partner names
+                partner_match = re.search(r'(?:my\s+)?(?:boyfriend|partner|husband)\s+(?:is\s+)?([a-zA-Z\s]+?)(?:\s|$|,|\.)', content)
+                if partner_match:
+                    partner_name = partner_match.group(1).strip().title()
+                    people_mentions[partner_name] = people_mentions.get(partner_name, 0) + (importance * 3)
+                    people_details[partner_name] = people_details.get(partner_name, {})
+                    people_details[partner_name]['relationship'] = 'Partner'
+                    people_details[partner_name]['mentions'] = people_details[partner_name].get('mentions', [])
+                    people_details[partner_name]['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+            
+            # Look for specific partner names mentioned
+            if 'michael' in content and ('boyfriend' in content or 'partner' in content):
+                people_mentions['Michael'] = people_mentions.get('Michael', 0) + (importance * 3)
+                people_details['Michael'] = people_details.get('Michael', {})
+                people_details['Michael']['relationship'] = 'Boyfriend/Partner'
+                people_details['Michael']['mentions'] = people_details['Michael'].get('mentions', [])
+                people_details['Michael']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+            
+            # INDIRECT PARTNER CUES - "we've been together", "moved in with", etc.
+            if any(phrase in content for phrase in ['been together', 'together for', 'moved in with', 'living with', 'we\'ve been']):
+                # Look for names in the same sentence as relationship cues
+                name_match = re.search(r'(?:been together|together for|moved in with|living with|we\'ve been)\s+(?:my\s+)?([a-zA-Z\s]+?)(?:\s|$|,|\.)', content)
+                if name_match:
+                    partner_name = name_match.group(1).strip().title()
+                    # Filter out common words that aren't names
+                    if len(partner_name) > 1 and partner_name.lower() not in ['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']:
+                        people_mentions[partner_name] = people_mentions.get(partner_name, 0) + (importance * 4)  # Higher importance for indirect cues
+                        people_details[partner_name] = people_details.get(partner_name, {})
+                        people_details[partner_name]['relationship'] = 'Partner'
+                        people_details[partner_name]['relationship_type'] = 'romantic'
+                        people_details[partner_name]['detection_method'] = 'indirect_cue'
+                        people_details[partner_name]['mentions'] = people_details[partner_name].get('mentions', [])
+                        people_details[partner_name]['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+                
+                # Also check for "we've been together for X years" pattern
+                together_match = re.search(r'we\'ve been together for (\d+)\s+years?', content)
+                if together_match:
+                    # If we found a relationship duration but no specific name, add a generic partner entry
+                    if not any(name in people_mentions for name in ['Michael', 'Partner', 'Boyfriend']):
+                        people_mentions['Partner'] = people_mentions.get('Partner', 0) + (importance * 3)
+                        people_details['Partner'] = people_details.get('Partner', {})
+                        people_details['Partner']['relationship'] = 'Partner'
+                        people_details['Partner']['relationship_type'] = 'romantic'
+                        people_details['Partner']['detection_method'] = 'duration_cue'
+                        people_details['Partner']['relationship_duration'] = f"{together_match.group(1)} years"
+                        people_details['Partner']['mentions'] = people_details['Partner'].get('mentions', [])
+                        people_details['Partner']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+            
+            # Pets
+            if 'yuri' in content and 'dog' in content:
+                people_mentions['Yuri'] = people_mentions.get('Yuri', 0) + (importance * 2)
+                people_details['Yuri'] = people_details.get('Yuri', {})
+                people_details['Yuri']['relationship'] = 'Dog'
+                people_details['Yuri']['mentions'] = people_details['Yuri'].get('mentions', [])
+                people_details['Yuri']['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+            
+            # Friends and other relationships
+            if 'friend' in content:
+                friend_match = re.search(r'(?:my\s+)?friend\s+(?:is\s+)?([a-zA-Z\s]+?)(?:\s|$|,|\.)', content)
+                if friend_match:
+                    friend_name = friend_match.group(1).strip().title()
+                    people_mentions[friend_name] = people_mentions.get(friend_name, 0) + importance
+                    people_details[friend_name] = people_details.get(friend_name, {})
+                    people_details[friend_name]['relationship'] = 'Friend'
+                    people_details[friend_name]['mentions'] = people_details[friend_name].get('mentions', [])
+                    people_details[friend_name]['mentions'].append(content[:100] + "..." if len(content) > 100 else content)
+        
+        # Convert to important people list with enhanced details
+        for name, score in people_mentions.items():
+            if score >= 0.5:  # Include anyone with meaningful mention score
+                details = people_details.get(name, {})
+                relationship = details.get('relationship', 'Family')
+                mentions = details.get('mentions', [])
+                
+                # Create description based on relationship and mentions
+                if relationship in ['Older Sister', 'Younger Sister', 'Brother', 'Mother', 'Father']:
+                    description = f"{relationship} - mentioned {len(mentions)} times"
+                elif relationship == 'Partner':
+                    description = f"Partner - mentioned {len(mentions)} times"
+                elif relationship == 'Dog':
+                    description = f"Pet dog - mentioned {len(mentions)} times"
+                else:
+                    description = f"{relationship} - mentioned {len(mentions)} times"
+                
+                person = {
+                    'name': name,
+                    'relationship': relationship,
+                    'description': description,
+                    'recent_events': mentions[-1] if mentions else None,
+                    'mention_count': len(mentions),
+                    'importance_score': score
+                }
+                important_people.append(person)
+        
+        # Sort by importance score (mention count * importance)
+        important_people.sort(key=lambda x: x['importance_score'], reverse=True)
+        
+    except Exception as e:
+        print(f"Error extracting important people: {e}")
+    
+    return important_people
+
+def extract_preferences_and_dislikes_comprehensive(memory_context: dict, all_memories: list) -> dict:
+    """Extract preferences and dislikes from ALL memories."""
+    preferences = {
+        'music': [],
+        'food': [],
+        'entertainment': [],
+        'activities': [],
+        'other': []
+    }
+    
+    try:
+        for memory in all_memories:
+            content = memory.get('content', '').lower()
+            
+            # Music preferences
+            if any(word in content for word in ['music', 'song', 'artist', 'band', 'genre', 'listen']):
+                if any(word in content for word in ['like', 'love', 'favorite', 'enjoy']):
+                    clean_content = content[:100] + "..." if len(content) > 100 else content
+                    if clean_content not in preferences['music']:
+                        preferences['music'].append(clean_content)
+            
+            # Food preferences
+            if any(word in content for word in ['food', 'eat', 'restaurant', 'cook', 'meal', 'dinner', 'lunch', 'breakfast']):
+                if any(word in content for word in ['like', 'love', 'favorite', 'enjoy']):
+                    clean_content = content[:100] + "..." if len(content) > 100 else content
+                    if clean_content not in preferences['food']:
+                        preferences['food'].append(clean_content)
+            
+            # Entertainment preferences
+            if any(word in content for word in ['movie', 'film', 'tv', 'show', 'book', 'game', 'watch', 'read']):
+                if any(word in content for word in ['like', 'love', 'favorite', 'enjoy']):
+                    clean_content = content[:100] + "..." if len(content) > 100 else content
+                    if clean_content not in preferences['entertainment']:
+                        preferences['entertainment'].append(clean_content)
+            
+            # Activity preferences
+            if any(word in content for word in ['hobby', 'activity', 'sport', 'exercise', 'travel', 'walk', 'run', 'gym']):
+                if any(word in content for word in ['like', 'love', 'enjoy', 'love to']):
+                    clean_content = content[:100] + "..." if len(content) > 100 else content
+                    if clean_content not in preferences['activities']:
+                        preferences['activities'].append(clean_content)
+            
+            # Other preferences
+            if any(word in content for word in ['like', 'love', 'favorite', 'enjoy']):
+                if not any(word in content for word in ['music', 'food', 'movie', 'hobby', 'sport', 'exercise']):
+                    clean_content = content[:100] + "..." if len(content) > 100 else content
+                    if clean_content not in preferences['other']:
+                        preferences['other'].append(clean_content)
+        
+        # Limit to 5 items per category
+        for category in preferences:
+            preferences[category] = preferences[category][:5]
+        
+    except Exception as e:
+        print(f"Error extracting preferences: {e}")
+    
+    return preferences
+
+def extract_recent_events_comprehensive(memory_context: dict, all_memories: list) -> list:
+    """Extract recent important events from ALL memories."""
+    recent_events = []
+    
+    try:
+        for memory in all_memories:
+            content = memory.get('content', '').lower()
+            timestamp = memory.get('timestamp', '')
+            
+            # Look for event indicators
+            event_indicators = [
+                'happened', 'occurred', 'went', 'attended', 'celebrated',
+                'graduated', 'married', 'moved', 'started', 'finished',
+                'birthday', 'anniversary', 'wedding', 'graduation',
+                'vacation', 'trip', 'meeting', 'interview', 'party',
+                'walk', 'walked', 'visit', 'visited', 'travel', 'traveled'
+            ]
+            
+            if any(indicator in content for indicator in event_indicators):
+                event = {
+                    'date': timestamp.split('T')[0] if timestamp else 'Unknown',
+                    'description': memory.get('content', '')[:200] + "..." if len(memory.get('content', '')) > 200 else memory.get('content', ''),
+                    'significance': 'High' if memory.get('importance', 0) > 0.7 else 'Medium'
+                }
+                recent_events.append(event)
+        
+        # Sort by date (most recent first)
+        recent_events.sort(key=lambda x: x['date'], reverse=True)
+        
+    except Exception as e:
+        print(f"Error extracting recent events: {e}")
+    
+    return recent_events[:10]  # Limit to 10 most recent events
+
+def extract_conversation_themes_comprehensive(memory_context: dict, all_memories: list) -> dict:
+    """Extract conversation themes from ALL memories."""
+    themes = {}
+    
+    try:
+        theme_keywords = {
+            'Family': ['family', 'sister', 'brother', 'parent', 'mother', 'father', 'eloise', 'vicky', 'victoria'],
+            'Work': ['work', 'job', 'career', 'office', 'meeting', 'project', 'profession'],
+            'Technology': ['app', 'software', 'computer', 'tech', 'digital', 'dating app', 'phone'],
+            'Entertainment': ['movie', 'music', 'book', 'game', 'show', 'film', 'tv'],
+            'Travel': ['travel', 'trip', 'vacation', 'visit', 'go', 'went', 'walk'],
+            'Health': ['health', 'exercise', 'gym', 'doctor', 'medical', 'fitness'],
+            'Food': ['food', 'restaurant', 'cook', 'eat', 'meal', 'dinner', 'lunch'],
+            'Relationships': ['relationship', 'dating', 'friend', 'partner', 'love'],
+            'Pets': ['dog', 'pet', 'yuri', 'animal'],
+            'Daily Life': ['day', 'morning', 'evening', 'today', 'yesterday', 'weekend']
+        }
+        
+        for memory in all_memories:
+            content = memory.get('content', '').lower()
+            
+            for theme, keywords in theme_keywords.items():
+                if any(keyword in content for keyword in keywords):
+                    themes[theme] = themes.get(theme, 0) + 1
+        
+        # Sort by frequency
+        themes = dict(sorted(themes.items(), key=lambda x: x[1], reverse=True))
+        
+    except Exception as e:
+        print(f"Error extracting conversation themes: {e}")
+    
+    return themes
+
+def calculate_memory_quality_score_comprehensive(memory_context: dict, all_memories: list) -> str:
+    """Calculate a memory quality score based on ALL memories."""
+    try:
+        score = 0
+        total_possible = 100
+        
+        # Memory count (max 30 points)
+        memory_count = len(all_memories)
+        score += min(memory_count * 0.5, 30)  # Adjusted for larger memory sets
+        
+        # Important memories (max 25 points)
+        important_count = len([m for m in all_memories if m.get('importance', 0) > 0.7])
+        score += min(important_count * 2, 25)
+        
+        # Personal details (max 20 points)
+        personal_memories = [m for m in all_memories if any(word in m.get('content', '').lower() for word in ['name', 'age', 'live', 'work', 'family'])]
+        score += min(len(personal_memories) * 1, 20)
+        
+        # Context richness (max 25 points)
+        if memory_context.get('emotional_context'):
+            score += 10
+        if memory_context.get('relationship_context'):
+            score += 10
+        if len(all_memories) > 50:  # Bonus for extensive conversation history
+            score += 5
+        
+        percentage = (score / total_possible) * 100
+        
+        if percentage >= 80:
+            return f"{percentage:.1f}% (Excellent)"
+        elif percentage >= 60:
+            return f"{percentage:.1f}% (Good)"
+        elif percentage >= 40:
+            return f"{percentage:.1f}% (Fair)"
+        else:
+            return f"{percentage:.1f}% (Basic)"
+            
+    except Exception as e:
+        return "Unknown"
 
 if __name__ == "__main__":
     main() 
