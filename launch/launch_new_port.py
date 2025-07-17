@@ -43,10 +43,10 @@ def launch_server(port):
     env = os.environ.copy()
     env['PYTHONPATH'] = str(script_dir)
     
-    # Build the command to run the server
+    # Build the command to run the server using the improved launcher
     cmd = [
         sys.executable, 
-        "core/dynamic_character_playground_enhanced.py",
+        "launch/launch_server.py",
         f"--port={port}"
     ]
     
@@ -96,8 +96,8 @@ def main():
     
     # Check if we're in the right directory (from launch folder perspective)
     project_root = Path(__file__).parent.parent
-    if not (project_root / "core/dynamic_character_playground_enhanced.py").exists():
-        print("❌ Error: Could not find core/dynamic_character_playground_enhanced.py")
+    if not (project_root / "launch/launch_server.py").exists():
+        print("❌ Error: Could not find launch/launch_server.py")
         print("Please ensure this script is in the launch folder of the project")
         return False
     

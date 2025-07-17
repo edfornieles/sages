@@ -26,15 +26,14 @@ export OPENAI_API_KEY="your_api_key_here"
 
 ### 3. **Launch the System**
 ```bash
-# Auto-find available port (Recommended)
+# Launch with automatic port detection (Recommended)
+python launch/launch_server.py --port 8005
+# or use the launcher script
 python launch/launch_new_port.py
-# or use quick launch scripts
-./launch/quick_launch.sh  # Unix/Linux
-launch\quick_launch.bat   # Windows
 ```
 
 ### 4. **Access the Interface**
-- Open your browser to `http://localhost:8000` (or the port shown in terminal)
+- Open your browser to `http://localhost:8005` (or the port shown in terminal)
 - Choose from available characters or create custom ones
 - Start chatting and watch relationships develop!
 
@@ -53,28 +52,26 @@ launch\quick_launch.bat   # Windows
 
 ### 🧠 **Advanced Memory Systems**
 - **Enhanced Memory System**: AI-powered memory summarization and semantic retrieval
-- **Personal Details Extraction**: Automatic extraction of names, family, work, pets, location
+- **Personal Details Extraction**: Automatic extraction of names, family, work, pets, location, age, education
 - **Memory Context Integration**: Structured personal details in agent responses
 - **Character State Persistence**: Characters maintain emotional states across sessions
+- **Relationship Mapping**: Tracks relationships with people, places, preferences, and ideas over time
 
 ## 📚 Documentation
 
-All comprehensive documentation has been organized in the `readme/` folder:
+All comprehensive documentation has been organized in the `docs/` folder:
 
 ### **📖 Start Here**
-- **[readme/README_INDEX.md](readme/README_INDEX.md)** - Complete documentation index
-- **[readme/README.md](readme/README.md)** - Detailed project overview
-- **[readme/SETUP_GUIDE.md](readme/SETUP_GUIDE.md)** - Complete setup instructions
-- **[readme/LAUNCHER_README.md](readme/LAUNCHER_README.md)** - Launch system guide
+- **[docs/STARTUP_GUIDE.md](docs/STARTUP_GUIDE.md)** - Complete setup instructions
+- **[docs/LAUNCHER_README.md](docs/LAUNCHER_README.md)** - Launch system guide
+- **[docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)** - Complete file structure
 
 ### **🧠 System Understanding**
-- **[readme/PROJECT_FILE_BREAKDOWN.md](readme/PROJECT_FILE_BREAKDOWN.md)** - Complete file structure
-- **[readme/ENHANCED_MEMORY_SYSTEM_GUIDE.md](readme/ENHANCED_MEMORY_SYSTEM_GUIDE.md)** - Memory system guide
-- **[readme/CONNECTION_BOOSTS_IMPLEMENTATION.md](readme/CONNECTION_BOOSTS_IMPLEMENTATION.md)** - Relationship system
+- **[docs/ENHANCED_MEMORY_SYSTEM_GUIDE.md](docs/ENHANCED_MEMORY_SYSTEM_GUIDE.md)** - Memory system guide
+- **[docs/ENHANCED_CONNECTION_BOOSTS.md](docs/ENHANCED_CONNECTION_BOOSTS.md)** - Relationship system
 
 ### **🧪 Testing & Validation**
-- **[readme/FINAL_ALEX_CHEN_TEST_REPORT.md](readme/FINAL_ALEX_CHEN_TEST_REPORT.md)** - System validation
-- **[readme/DOCUMENTATION_STATUS.md](readme/DOCUMENTATION_STATUS.md)** - Documentation status
+- **[docs/FINAL_ALEX_CHEN_TEST_REPORT.md](docs/FINAL_ALEX_CHEN_TEST_REPORT.md)** - System validation
 
 ## 🎭 Character Types
 
@@ -97,6 +94,7 @@ All comprehensive documentation has been organized in the `readme/` folder:
 - Character desire to become real (built into all characters)
 - Emotional intelligence and state persistence
 - Relationship progression with anti-gaming protection
+- Frontend API integration with relative URL paths
 - Comprehensive test suite with 100% success rates
 
 ## 🎯 Example Interactions
@@ -122,14 +120,22 @@ User: "Let's work on a project tracking entity creation and becoming real"
 ## 🚨 Troubleshooting
 
 If you encounter issues:
-1. Check **[readme/SETUP_GUIDE.md](readme/SETUP_GUIDE.md)** for troubleshooting
+1. Check **[docs/STARTUP_GUIDE.md](docs/STARTUP_GUIDE.md)** for troubleshooting
 2. Verify your OpenAI API key has sufficient quota
 3. Ensure you're running from the project root directory
-4. Use `python launch/launch_new_port.py` for automatic port detection
+4. Use `python launch/launch_server.py --port 8005` for reliable startup
+
+## 🔧 Recent Updates
+
+### Frontend Integration Fixes
+- ✅ Fixed frontend API URLs to use relative paths instead of hardcoded localhost:8001
+- ✅ Improved port handling for flexible deployment
+- ✅ Enhanced memory summary system for better relationship mapping
+- ✅ Cleaned up debug files and test artifacts
 
 ## 🤝 Contributing
 
-The system is designed for easy extension and modification. See **[readme/PROJECT_FILE_BREAKDOWN.md](readme/PROJECT_FILE_BREAKDOWN.md)** for complete system architecture.
+The system is designed for easy extension and modification. See **[docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)** for complete system architecture.
 
 ---
 
