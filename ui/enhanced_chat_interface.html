@@ -930,7 +930,7 @@
         async function loadCharacters() {
             try {
                 showStatus('Loading characters...', 'info');
-                const response = await fetch('http://localhost:8001/characters');
+                const response = await fetch('/characters');
                 const data = await response.json();
                 characters = data.characters;
                 displayCharacters();
@@ -1052,7 +1052,7 @@
             chatInput.style.height = 'auto';
             
             try {
-                const response = await fetch('http://localhost:8001/chat', {
+                const response = await fetch('/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1112,7 +1112,7 @@
         
         async function loadCharacterMood(characterId) {
             try {
-                const response = await fetch(`http://localhost:8001/characters/${characterId}`);
+                const response = await fetch(`/characters/${characterId}`);
                 const data = await response.json();
                 
                 if (data.mood) {
@@ -1129,7 +1129,7 @@
         
         async function loadRelationshipProgress(characterId) {
             try {
-                const response = await fetch(`http://localhost:8001/relationship/${currentUserId}/${characterId}`);
+                const response = await fetch(`/relationship/${currentUserId}/${characterId}`);
                 if (response.ok) {
                     const data = await response.json();
                     updateProgressBar(data);
@@ -1160,7 +1160,7 @@
         
         async function loadMemoryContext(characterId) {
             try {
-                const response = await fetch(`http://localhost:8001/characters/${characterId}/user-profile/${currentUserId}/summary`);
+                const response = await fetch(`/characters/${characterId}/user-profile/${currentUserId}/summary`);
                 if (response.ok) {
                     const data = await response.json();
                     updateMemoryStatus(data);
@@ -1193,7 +1193,7 @@
             try {
                 showStatus('Generating enhanced memory summary...', 'info');
                 
-                const response = await fetch(`http://localhost:8001/characters/${selectedCharacter.id}/memory-summary/${currentUserId}/download`);
+                const response = await fetch(`/characters/${selectedCharacter.id}/memory-summary/${currentUserId}/download`);
                 
                 if (response.ok) {
                     const summaryText = await response.text();
@@ -1225,7 +1225,7 @@
                 const characterId = document.getElementById('characterId').value.trim() || null;
                 const count = parseInt(document.getElementById('characterCount').value) || 1;
                 
-                const response = await fetch('http://localhost:8001/characters/generate', {
+                const response = await fetch('/characters/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1259,7 +1259,7 @@
             try {
                 showStatus('Deleting character...', 'info');
                 
-                const response = await fetch(`http://localhost:8001/characters/${characterId}`, {
+                const response = await fetch(`/characters/${characterId}`, {
                     method: 'DELETE'
                 });
                 
@@ -1290,7 +1290,7 @@
         async function editAppearance(characterId) {
             try {
                 // Load current appearance
-                const response = await fetch(`http://localhost:8001/characters/${characterId}/appearance`);
+                const response = await fetch(`/characters/${characterId}/appearance`);
                 if (response.ok) {
                     const data = await response.json();
                     document.getElementById('appearanceTextarea').value = data.appearance_description || '';
@@ -1323,7 +1323,7 @@
             try {
                 showStatus('Saving appearance...', 'info');
                 
-                const response = await fetch(`http://localhost:8001/characters/${characterId}/appearance`, {
+                const response = await fetch(`/characters/${characterId}/appearance`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1351,7 +1351,7 @@
                 showStatus('Loading ambitions...', 'info');
                 
                 // Get current ambitions
-                const response = await fetch(`http://localhost:8001/characters/${characterId}/ambitions`);
+                const response = await fetch(`/characters/${characterId}/ambitions`);
                 if (response.ok) {
                     const data = await response.json();
                     
@@ -1393,7 +1393,7 @@
             try {
                 showStatus('Saving ambitions...', 'info');
                 
-                const response = await fetch(`http://localhost:8001/characters/${characterId}/ambitions`, {
+                const response = await fetch(`/characters/${characterId}/ambitions`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
