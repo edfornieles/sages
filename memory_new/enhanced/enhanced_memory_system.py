@@ -807,45 +807,85 @@ class EnhancedMemorySystem:
             logger.error(f"❌ Error generating relationship context: {e}")
             return ""
     
-    def search_memories(self, query: str, max_results: int = 5) -> List[Dict[str, Any]]:
+    def get_memories_by_type(self, memory_type: str, max_results: int = 50) -> List[Dict[str, Any]]:
         """
-        Search memories by content
-        
+        Get memories by type directly from database
         Args:
-            query: Search query
+            memory_type: Type of memories to retrieve
             max_results: Maximum number of results
-            
         Returns:
-            List of matching memories
+            List of memories with all fields
         """
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
-                
                 cursor.execute("""
-                    SELECT content, memory_type, importance, timestamp, 
-                           emotional_valence, relationship_impact
+                    SELECT id, content, memory_type, importance, timestamp, 
+                           emotional_valence, relationship_impact, tags, context
+                    FROM enhanced_memory 
+                    WHERE character_id = ? AND user_id = ? AND memory_type = ?
+                    ORDER BY timestamp DESC
+                    LIMIT ?
+                """, (self.character_id, self.user_id, memory_type, max_results))
+                
+                rows = cursor.fetchall()
+                memories = []
+                
+                for row in rows:
+                    memory = {
+                        "id": row[0],
+                        "content": row[1],
+                        "type": row[2],
+                        "importance": row[3],
+                        "timestamp": row[4],
+                        "emotional_valence": row[5],
+                        "relationship_impact": row[6],
+                        "tags": json.loads(row[7]) if row[7] else [],
+                        "context": json.loads(row[8]) if row[8] else {},
+                    }
+                    memories.append(memory)
+                
+                return memories
+        except Exception as e:
+            print(f"Error getting memories by type: {e}")
+            return []
+
+    def search_memories(self, query: str, max_results: int = 5) -> List[Dict[str, Any]]:
+        """
+        Search memories by content
+        Args:
+            query: Search query
+            max_results: Maximum number of results
+        Returns:
+            List of matching memories with id, type, tags, context, etc.
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT id, content, memory_type, importance, timestamp, 
+                           emotional_valence, relationship_impact, tags, context
                     FROM enhanced_memory 
                     WHERE character_id = ? AND user_id = ? 
                     AND content LIKE ?
                     ORDER BY importance DESC, timestamp DESC 
                     LIMIT ?
                 """, (self.character_id, self.user_id, f"%{query}%", max_results))
-                
                 memories = cursor.fetchall()
-                
                 return [
                     {
-                        "content": memory[0],
-                        "type": memory[1],
-                        "importance": memory[2],
-                        "timestamp": memory[3],
-                        "emotional_valence": memory[4],
-                        "relationship_impact": memory[5]
+                        "id": memory[0],
+                        "content": memory[1],
+                        "type": memory[2],
+                        "importance": memory[3],
+                        "timestamp": memory[4],
+                        "emotional_valence": memory[5],
+                        "relationship_impact": memory[6],
+                        "tags": json.loads(memory[7]) if memory[7] else [],
+                        "metadata": json.loads(memory[8]) if memory[8] else {},
                     }
                     for memory in memories
                 ]
-                
         except Exception as e:
             logger.error(f"❌ Failed to search enhanced memories: {e}")
             return []

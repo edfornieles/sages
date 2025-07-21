@@ -473,6 +473,7 @@
                         <option value="relationship">Relationships</option>
                         <option value="emotional">Emotional</option>
                         <option value="temporal">Temporal</option>
+                        <option value="diary">Diary Entries</option>
                     </select>
                     <select class="filter-select" id="confidence-filter" title="Filter by confidence">
                         <option value="">All Confidence</option>
@@ -497,6 +498,9 @@
                     </button>
                     <button class="btn btn-primary" onclick="showAddMemoryModal()">
                         ➕ Add Memory
+                    </button>
+                    <button class="btn btn-primary" onclick="generateDiary()" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+                        📖 Generate Diary
                     </button>
                 </div>
             </div>
@@ -1124,6 +1128,79 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(later, wait);
             };
+        }
+
+        async function generateDiary() {
+            if (!CHARACTER_ID || !USER_ID) {
+                showError('Please select both a character and user first');
+                return;
+            }
+            
+            try {
+                showNotification('Generating diary entry...', 'info');
+                
+                const response = await fetch(`${API_BASE}/characters/${CHARACTER_ID}/diary/${USER_ID}`);
+                if (!response.ok) throw new Error('Failed to generate diary');
+                
+                const diaryContent = await response.text();
+                
+                // Show diary in a modal
+                showDiaryModal(diaryContent);
+                
+                // Reload memories to include the new diary entry
+                await loadMemories();
+                
+                showSuccess('Diary entry generated successfully');
+            } catch (error) {
+                console.error('Error generating diary:', error);
+                showError('Failed to generate diary entry');
+            }
+        }
+
+        function showDiaryModal(diaryContent) {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+                    <div class="modal-header">
+                        <div class="modal-title">📖 Agent Diary Entry</div>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div style="max-height: 70vh; overflow-y: auto; padding: 20px 0;">
+                        <pre style="white-space: pre-wrap; font-family: inherit; line-height: 1.6; color: #333;">${diaryContent}</pre>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Close</button>
+                        <button class="btn btn-primary" onclick="downloadDiary('${diaryContent.replace(/'/g, "\\'")}')">📥 Download</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function downloadDiary(content) {
+            const dataBlob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `diary_${CHARACTER_ID}_${USER_ID}_${new Date().toISOString().split('T')[0]}.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function loadDiaryEntries() {
+            if (!CHARACTER_ID || !USER_ID) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/characters/${CHARACTER_ID}/diary-entries/${USER_ID}`);
+                if (!response.ok) throw new Error('Failed to load diary entries');
+                
+                const data = await response.json();
+                return data.diary_entries || [];
+            } catch (error) {
+                console.error('Error loading diary entries:', error);
+                return [];
+            }
         }
 
         // Close modal when clicking outside

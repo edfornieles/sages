@@ -784,7 +784,7 @@
                 <div id="memoryStatus" class="memory-status" style="display: none;">
                     <div class="memory-header">
                         <span class="memory-label">🧠 Character Memory</span>
-                        <button class="btn btn-small btn-success" onclick="downloadMemorySummary()">📥 Download Summary</button>
+                        <button class="btn btn-small btn-success" onclick="downloadMemorySummary()">📥 Download Diary</button>
                     </div>
                     <div class="memory-details">
                         <span id="memoryCount">0 memories stored</span>
@@ -1191,31 +1191,31 @@
             }
             
             try {
-                showStatus('Generating enhanced memory summary...', 'info');
+                showStatus('Generating latest diary entry...', 'info');
                 
-                const response = await fetch(`/characters/${selectedCharacter.id}/memory-summary/${currentUserId}/download`);
+                const response = await fetch(`/characters/${selectedCharacter.id}/diary/${currentUserId}/download`);
                 
                 if (response.ok) {
-                    const summaryText = await response.text();
+                    const diaryText = await response.text();
                     
                     // Create and download file
-                    const blob = new Blob([summaryText], { type: 'text/plain' });
+                    const blob = new Blob([diaryText], { type: 'text/plain' });
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${selectedCharacter.name}_enhanced_memory_summary_${currentUserId}.txt`;
+                    a.download = `${selectedCharacter.name}_diary_${currentUserId}.txt`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
                     
-                    showStatus('Enhanced memory summary downloaded successfully!', 'success');
+                    showStatus('Latest diary entry downloaded successfully!', 'success');
                 } else {
-                    throw new Error('Failed to generate enhanced memory summary');
+                    throw new Error('Failed to generate diary entry');
                 }
             } catch (error) {
-                console.error('Error downloading enhanced memory summary:', error);
-                showStatus('Error downloading enhanced memory summary: ' + error.message, 'error');
+                console.error('Error downloading diary entry:', error);
+                showStatus('Error downloading diary entry: ' + error.message, 'error');
             }
         }
         
